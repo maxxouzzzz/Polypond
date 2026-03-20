@@ -4,9 +4,9 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>PolyPong LIVE 🏓</title>
-    <script src="https://cdn.tailwindcss.com"></script>
-    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+	<link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+	<script src="https://cdn.tailwindcss.com"></script>
     
     <script src="https://www.gstatic.com/firebasejs/9.0.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.0.0/firebase-database-compat.js"></script>
@@ -86,151 +86,100 @@
     <script>
         // ⚠️ COLLE TA CONFIG FIREBASE ICI ⚠️
         const firebaseConfig = {
-    	apiKey: "AIzaSyB3c2XjiG6WQvhPFwgReFOIlO61Z86OqHk",
-    	authDomain: "polypong-e47fd.firebaseapp.com",
-    	// Remplace l'URL ci-dessous par celle qui s'affiche en haut de ta Realtime Database
-    	databaseURL: "https://polypong-e47fd-default-rtdb.europe-west1.firebasedatabase.app/", 
-   	projectId: "polypong-e47fd",
-    	storageBucket: "polypong-e47fd.firebasestorage.app",
-    	messagingSenderId: "824324243547",
-    	appId: "1:824324243547:web:10c720e92c65435d45ff7e",
-    	measurementId: "G-RYZN8Z8Z91"
-	};
-
-        firebase.initializeApp(firebaseConfig);
-        const db = firebase.database();
-
-        const PLAYER_PHOTOS = {
-            'Maxime': 'https://i.postimg.cc/4dyK7Tz3/IMG_1306.png',
-            'Alan': 'https://i.postimg.cc/Jn0yDWbz/Resized_20241214_1341581.jpg'
-        };
-        const VS_IMAGE_URL = 'https://i.postimg.cc/Z51B9Qwx/image.png'
-        let tempP = ""; let tempW = ""; let activeId = null;
-        let matchs = []; let paris = []; let myChart = null;
-
-        // --- ÉCOUTE DU CLOUD EN TEMPS RÉEL ---
-        db.ref('matchs').on('value', (snap) => {
-            matchs = snap.val() ? Object.values(snap.val()) : [];
-            render();
-        });
-        db.ref('paris').on('value', (snap) => {
-            paris = snap.val() ? Object.values(snap.val()) : [];
-            render();
-        });
-
-        // --- FONCTIONS CLOUD ---
-        function saveMatch() {
-            const l = document.getElementById('match-label').value;
-            const d = document.getElementById('match-date').value;
-            const id = Date.now();
-            db.ref('matchs/' + id).set({ id, label: l, date: d, winner: null, score: null });
-            closeModal('match');
-        }
-
-        function savePari() {
-            const u = document.getElementById('pari-user').value;
-            const mId = document.getElementById('pari-match-id').value;
-            if(!u || !tempP || !mId) return alert("Tout remplir !");
-            db.ref('paris/').push({ user: u, prono: tempP, matchId: parseInt(mId) });
-            closeModal('pari');
-        }
-
-        function validateMatch() {
-            const s = document.getElementById('final-score').value;
-            const match = matchs.find(m => m.id === activeId);
-            db.ref('matchs/' + activeId).update({ winner: tempW, score: s });
-            closeModal('score');
-        }
-
-        // --- INTERFACE ---
-        function openModal(id, mId = null) { 
-            if(id === 'score') activeId = mId;
-            document.getElementById('modal-'+id).classList.remove('hidden');
-            if(id === 'pari') {
-                const sel = document.getElementById('pari-match-id');
-                const open = matchs.filter(m => !m.winner);
-                sel.innerHTML = open.map(m => `<option value="${m.id}">${m.label}</option>`).join('');
-            }
-        }
-        function closeModal(id) { document.getElementById('modal-'+id).classList.add('hidden'); }
-
-        function switchTab(t) {
-            document.getElementById('tab-matchs').classList.toggle('hidden', t !== 'matchs');
-            document.getElementById('tab-paris').classList.toggle('hidden', t !== 'paris');
-            document.getElementById('btn-matchs').className = t === 'matchs' ? "flex-1 py-2 rounded-lg font-bold text-[10px] bg-slate-800 text-white shadow uppercase" : "flex-1 py-2 rounded-lg font-bold text-[10px] text-slate-400 uppercase";
-            document.getElementById('btn-paris').className = t === 'paris' ? "flex-1 py-2 rounded-lg font-bold text-[10px] bg-slate-800 text-white shadow uppercase" : "flex-1 py-2 rounded-lg font-bold text-[10px] text-slate-400 uppercase";
-        }
-
-        function render() {
-            // Stats & Graph
-            const mW = matchs.filter(m => m.winner === 'Maxime').length;
-            const aW = matchs.filter(m => m.winner === 'Alan').length;
-            document.getElementById('list-matchs').innerHTML = matchs.sort((a,b)=>b.id-a.id).map(m => `
-			    <div class="bg-slate-900 p-4 rounded-2xl border ${m.winner ? 'border-slate-800' : 'border-blue-500/50 shadow-lg'} flex justify-between items-center mb-3">
-			        <div class="flex items-center gap-3">
-			            <img referrerpolicy="no-referrer" src="${m.winner ? PLAYER_PHOTOS[m.winner] : VS_IMAGE_URL}" class="w-10 h-10 rounded-full border border-slate-700 object-cover">
-			            <div>
-			                <p class="text-[8px] text-slate-500 uppercase font-black">${m.date}</p>
-			                <div class="flex items-center gap-2">
-			                    <p class="font-bold text-white uppercase text-xs">${m.label}</p>
-			                    
-			                    <button onclick="deleteMatch(${m.id})" class="text-slate-600 hover:text-red-500 p-1 transition-all" title="Supprimer">
-			                        <i class="fa-solid fa-trash-can pointer-events-none"></i>
-			                    </button>
-			                </div>
-			                ${m.winner ? 
-			                    `<p class="text-[9px] font-black ${m.winner==='Maxime'?'text-blue-400':'text-red-400'} italic uppercase">${m.winner} Gagne</p>` : 
-			                    `<button onclick="openModal('score', ${m.id})" class="text-[9px] text-blue-500 font-bold uppercase underline">Terminer</button>`
-			                }
-			            </div>
-			        </div>
-			        <div class="text-xl font-black text-slate-300 font-mono">${m.score || '⏳'}</div>
-			    </div>`).join('');
-            
-            // Matchs
-            document.getElementById('list-matchs').innerHTML = matchs.sort((a,b)=>b.id-a.id).map(m => `
-                <div class="bg-slate-900 p-4 rounded-2xl border ${m.winner ? 'border-slate-800' : 'border-blue-500/50 shadow-lg'} flex justify-between items-center">
-                    <div class="flex items-center gap-3">
-                        <img referrerpolicy="no-referrer" src="${m.winner ? PLAYER_PHOTOS[m.winner] : VS_IMAGE_URL}" class="w-10 h-10 rounded-full border border-slate-700 object-cover">
-                        <div>
-                            <p class="text-[8px] text-slate-500 uppercase font-black">${m.date}</p>
-                            <p class="font-bold text-white uppercase text-xs">${m.label}</p>
-                            ${m.winner ? `<p class="text-[9px] font-black ${m.winner==='Maxime'?'text-blue-400':'text-red-400'} italic uppercase">${m.winner} Gagne</p>` : `<button onclick="openModal('score', ${m.id})" class="text-[9px] text-blue-500 font-bold uppercase underline">Terminer</button>`}
-                        </div>
-                    </div>
-                    <div class="text-xl font-black text-slate-300 font-mono">${m.score || '⏳'}</div>
-                </div>`).join('');
-
-            // Paris & Leaderboard
-            const scores = {};
-            document.getElementById('list-paris').innerHTML = paris.map(p => {
-                const m = matchs.find(x => x.id === p.matchId);
-                let res = "EN ATTENTE"; let cl = "text-slate-600";
-                if(m && m.winner) {
-                    if(m.winner === p.prono) { res = "GAGNÉ ✅"; cl = "text-green-500"; scores[p.user] = (scores[p.user] || 0) + 1; }
-                    else { res = "PERDU ❌"; cl = "text-red-500"; scores[p.user] = (scores[p.user] || 0); }
-                }
-                return `<div class="bg-slate-900/40 p-3 rounded-xl border border-slate-800 flex justify-between text-[10px] uppercase font-bold"><span>${p.user} : ${p.prono}</span><span class="${cl}">${res}</span></div>`;
-            }).join('');
-
-            document.getElementById('leaderboard').innerHTML = Object.entries(scores).sort((a,b)=>b[1]-a[1]).map(([n, pts], i) => `
-                <div class="flex justify-between items-center bg-slate-950 p-3 rounded-xl border-l-4 ${i===0?'border-yellow-500':'border-blue-600'}">
-                    <span class="font-bold text-xs">${i+1}. ${n}</span><span class="font-black text-blue-400 italic">${pts} PTS</span>
-                </div>`).join('');
-
-            updateChart(mW, aW);
-        }
-
-        function updateChart(mW, aW) {
-            const ctx = document.getElementById('mainChart').getContext('2d');
-            if(myChart) myChart.destroy();
-            myChart = new Chart(ctx, { type: 'bar', data: { labels: ['M', 'A'], datasets: [{ data: [mW, aW], backgroundColor: ['#3b82f6', '#ef4444'], borderRadius: 10 }] }, options: { indexAxis: 'y', plugins: { legend: { display: false } }, scales: { x: { display: false, suggestedMax: Math.max(mW, aW) + 1 }, y: { ticks: { color: '#fff', font: { weight: 'bold' } } } } } });
-        }
+		    apiKey: "AIzaSyB3c2XjiG6WQvhPFwgReFOIlO61Z86OqHk",
+		    authDomain: "polypong-e47fd.firebaseapp.com",
+		    databaseURL: "https://polypong-e47fd-default-rtdb.europe-west1.firebasedatabase.app/", 
+		    projectId: "polypong-e47fd",
+		    storageBucket: "polypong-e47fd.firebasestorage.app",
+		    messagingSenderId: "824324243547",
+		    appId: "1:824324243547:web:10c720e92c65435d45ff7e",
+		    measurementId: "G-RYZN8Z8Z91"
+		};
+		
+		firebase.initializeApp(firebaseConfig);
+		const db = firebase.database();
+		
+		const PLAYER_PHOTOS = {
+		    'Maxime': 'https://i.postimg.cc/4dyK7Tz3/IMG-1306.png',
+		    'Alan': 'https://i.postimg.cc/Jn0yDWbz/Resized-20241214-1341581.jpg'
+		};
+		const VS_IMAGE_URL = 'https://i.postimg.cc/xT0f8HqS/DALL-E-2024-03-21-VS.png';
+		
+		let tempP = ""; let tempW = ""; let activeId = null;
+		let matchs = []; let paris = []; let myChart = null;
+		
+		// --- ECOUTE CLOUD ---
+		db.ref('matchs').on('value', (snap) => {
+		    matchs = snap.val() ? Object.values(snap.val()) : [];
+		    render();
+		});
+		db.ref('paris').on('value', (snap) => {
+		    paris = snap.val() ? Object.values(snap.val()) : [];
+		    render();
+		});
+		
+		// --- SUPPRESSION ---
 		function deleteMatch(id) {
-		    if(confirm("Supprimer ce match définitivement ?")) {
+		    if(confirm("Supprimer ce match et ses données ?")) {
 		        db.ref('matchs/' + id).remove();
 		    }
 		}
-    </script>
+		
+		function saveMatch() {
+		    const l = document.getElementById('match-label').value;
+		    const d = document.getElementById('match-date').value;
+		    const id = Date.now();
+		    db.ref('matchs/' + id).set({ id, label: l, date: d, winner: null, score: null });
+		    closeModal('match');
+		}
+		
+		function validateMatch() {
+		    const s = document.getElementById('final-score').value;
+		    db.ref('matchs/' + activeId).update({ winner: tempW, score: s });
+		    closeModal('score');
+		}
+		
+		function openModal(id, mId = null) { 
+		    if(id === 'score') activeId = mId;
+		    document.getElementById('modal-'+id).classList.remove('hidden');
+		}
+		function closeModal(id) { document.getElementById('modal-'+id).classList.add('hidden'); }
+		
+		// --- AFFICHAGE ---
+		function render() {
+		    const mW = matchs.filter(m => m.winner === 'Maxime').length;
+		    const aW = matchs.filter(m => m.winner === 'Alan').length;
+		    
+		    // Met à jour le titre (Le fameux message bloqué)
+		    document.getElementById('stats-summary').innerText = `LIVE : MAXIME ${mW} - ${aW} ALAN`;
+		
+		    // Liste des Matchs avec Corbeille
+		    document.getElementById('list-matchs').innerHTML = matchs.sort((a,b)=>b.id-a.id).map(m => `
+		        <div class="bg-slate-900 p-4 rounded-2xl border ${m.winner ? 'border-slate-800' : 'border-blue-500/50'} flex justify-between items-center mb-3">
+		            <div class="flex items-center gap-3">
+		                <img referrerpolicy="no-referrer" src="${m.winner ? PLAYER_PHOTOS[m.winner] : VS_IMAGE_URL}" class="w-10 h-10 rounded-full border border-slate-700 object-cover">
+		                <div>
+		                    <p class="text-[8px] text-slate-500 uppercase font-black">${m.date}</p>
+		                    <div class="flex items-center gap-2">
+		                        <p class="font-bold text-white uppercase text-xs">${m.label}</p>
+		                        <button onclick="deleteMatch(${m.id})" class="text-slate-600 hover:text-red-500 transition-colors">
+		                            <i class="fa-solid fa-trash-can text-[10px]"></i>
+		                        </button>
+		                    </div>
+		                    ${m.winner ? `<p class="text-[9px] font-black ${m.winner==='Maxime'?'text-blue-400':'text-red-400'} italic uppercase">${m.winner} Gagne</p>` : `<button onclick="openModal('score', ${m.id})" class="text-[9px] text-blue-500 font-bold uppercase underline">Terminer</button>`}
+		                </div>
+		            </div>
+		            <div class="text-xl font-black text-slate-300 font-mono">${m.score || '⏳'}</div>
+		        </div>`).join('');
+		
+		    updateChart(mW, aW);
+		}
+		
+		function updateChart(mW, aW) {
+		    const ctx = document.getElementById('mainChart').getContext('2d');
+		    if(myChart) myChart.destroy();
+		    myChart = new Chart(ctx, { type: 'bar', data: { labels: ['M', 'A'], datasets: [{ data: [mW, aW], backgroundColor: ['#3b82f6', '#ef4444'], borderRadius: 10 }] }, options: { indexAxis: 'y', plugins: { legend: { display: false } }, scales: { x: { display: false, suggestedMax: Math.max(mW, aW) + 1 }, y: { ticks: { color: '#fff' } } } } });
+		}
+	</script>
 </body>
 </html>

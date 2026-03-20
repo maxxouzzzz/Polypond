@@ -171,7 +171,7 @@
             document.getElementById('list-matchs').innerHTML = matchs.sort((a,b)=>b.id-a.id).map(m => `
                 <div class="bg-slate-900 p-4 rounded-2xl border ${m.winner ? 'border-slate-800' : 'border-blue-500/50 shadow-lg'} flex justify-between items-center">
                     <div class="flex items-center gap-3">
-                        <img src="${m.winner ? PLAYER_PHOTOS[m.winner] : VS_IMAGE_URL}" class="w-10 h-10 rounded-full border border-slate-700 object-cover">
+                        <img referrerpolicy="no-referrer" src="${m.winner ? PLAYER_PHOTOS[m.winner] : VS_IMAGE_URL}" class="w-10 h-10 rounded-full border border-slate-700 object-cover">
                         <div>
                             <p class="text-[8px] text-slate-500 uppercase font-black">${m.date}</p>
                             <p class="font-bold text-white uppercase text-xs">${m.label}</p>

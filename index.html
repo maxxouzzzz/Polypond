@@ -166,18 +166,22 @@
             const mW = matchs.filter(m => m.winner === 'Maxime').length;
             const aW = matchs.filter(m => m.winner === 'Alan').length;
             document.getElementById('list-matchs').innerHTML = matchs.sort((a,b)=>b.id-a.id).map(m => `
-			    <div class="bg-slate-900 p-4 rounded-2xl border ${m.winner ? 'border-slate-800' : 'border-blue-500/50 shadow-lg'} flex justify-between items-center">
+			    <div class="bg-slate-900 p-4 rounded-2xl border ${m.winner ? 'border-slate-800' : 'border-blue-500/50 shadow-lg'} flex justify-between items-center mb-3">
 			        <div class="flex items-center gap-3">
 			            <img referrerpolicy="no-referrer" src="${m.winner ? PLAYER_PHOTOS[m.winner] : VS_IMAGE_URL}" class="w-10 h-10 rounded-full border border-slate-700 object-cover">
 			            <div>
 			                <p class="text-[8px] text-slate-500 uppercase font-black">${m.date}</p>
 			                <div class="flex items-center gap-2">
 			                    <p class="font-bold text-white uppercase text-xs">${m.label}</p>
-			                    <button onclick="deleteMatch(${m.id})" class="text-slate-600 hover:text-red-500 transition-colors">
-			                        <i class="fas fa-trash-can text-[10px]"></i>
+			                    
+			                    <button onclick="deleteMatch(${m.id})" class="text-slate-600 hover:text-red-500 p-1 transition-all" title="Supprimer">
+			                        <i class="fa-solid fa-trash-can pointer-events-none"></i>
 			                    </button>
 			                </div>
-			                ${m.winner ? `<p class="text-[9px] font-black ${m.winner==='Maxime'?'text-blue-400':'text-red-400'} italic uppercase">${m.winner} Gagne</p>` : `<button onclick="openModal('score', ${m.id})" class="text-[9px] text-blue-500 font-bold uppercase underline">Terminer</button>`}
+			                ${m.winner ? 
+			                    `<p class="text-[9px] font-black ${m.winner==='Maxime'?'text-blue-400':'text-red-400'} italic uppercase">${m.winner} Gagne</p>` : 
+			                    `<button onclick="openModal('score', ${m.id})" class="text-[9px] text-blue-500 font-bold uppercase underline">Terminer</button>`
+			                }
 			            </div>
 			        </div>
 			        <div class="text-xl font-black text-slate-300 font-mono">${m.score || '⏳'}</div>

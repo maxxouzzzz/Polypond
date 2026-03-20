@@ -50,7 +50,7 @@
 
     <div id="modal-match" class="fixed inset-0 bg-black/95 hidden z-[100] p-6 flex items-center justify-center backdrop-blur-md">
         <div class="bg-slate-900 border border-slate-800 w-full max-w-xs rounded-3xl p-6 shadow-2xl">
-            <h2 class="font-bold mb-4 uppercase text-blue-500 text-xs">Programmer un match</h2>
+            <h2 class="font-bold mb-4 uppercase text-blue-500 text-xs text-center">Programmer un match</h2>
             <input id="match-label" type="text" placeholder="Titre (ex: Match du soir)" class="w-full bg-slate-800 border border-slate-700 p-4 rounded-xl mb-3 text-white text-base outline-none">
             <input id="match-date" type="date" class="w-full bg-slate-800 border border-slate-700 p-4 rounded-xl mb-6 text-white text-base outline-none">
             <div class="flex gap-2">
@@ -111,12 +111,12 @@
 
         db.ref('matchs').on('value', (s) => { 
             const d = s.val(); 
-            matchs = d ? Object.entries(d).map(([id, v]) => ({...v, id})) : []; 
+            matchs = d ? Object.entries(d).map(([id, v]) => ({...v, id: id.toString()})) : []; 
             render(); 
         });
         db.ref('paris').on('value', (s) => { 
             const d = s.val(); 
-            paris = d ? Object.entries(d).map(([id, v]) => ({...v, id})) : []; 
+            paris = d ? Object.entries(d).map(([id, v]) => ({...v, id: id.toString()})) : []; 
             render(); 
         });
 
@@ -146,7 +146,7 @@
             const l = document.getElementById('match-label').value;
             const d = document.getElementById('match-date').value;
             if(!l || !d) return alert("Remplis tout !");
-            const id = Date.now().toString(); // On force l'ID en texte
+            const id = Date.now().toString();
             db.ref('matchs/' + id).set({ id, label: l, date: d, winner: null, score: null });
             closeModal('match');
         }
@@ -155,7 +155,7 @@
             const u = document.getElementById('pari-user').value;
             const mId = document.getElementById('pari-match-id').value;
             if(!u || !tempP || !mId || mId === "null") return alert("Choisis ton prénom et ton champion !");
-            db.ref('paris/').push({ user: u, prono: tempP, matchId: mId }); // mId est déjà du texte
+            db.ref('paris/').push({ user: u, prono: tempP, matchId: mId.toString() });
             closeModal('pari');
         }
 
@@ -184,7 +184,7 @@
             document.getElementById('stats-summary').innerText = `LIVE : MAXIME ${mW} - ${aW} ALAN`;
 
             document.getElementById('list-matchs').innerHTML = matchs.sort((a,b)=>b.id-a.id).map(m => `
-                <div class="bg-slate-900 p-4 rounded-2xl border ${m.winner ? 'border-slate-800' : 'border-blue-500/50 shadow-lg shadow-blue-950/20'} flex justify-between items-center mb-3">
+                <div class="bg-slate-900 p-4 rounded-2xl border ${m.winner ? 'border-slate-800' : 'border-blue-500/50 shadow-lg'} flex justify-between items-center mb-3">
                     <div class="flex items-center gap-3">
                         <img referrerpolicy="no-referrer" src="${m.winner ? PLAYER_PHOTOS[m.winner] : VS_IMAGE_URL}" class="w-10 h-10 rounded-full border border-slate-700 object-cover bg-slate-800">
                         <div>
@@ -201,11 +201,20 @@
 
             const pts = {};
             document.getElementById('list-paris').innerHTML = paris.map(p => {
-                const m = matchs.find(x => x.id == p.matchId); // Utilisation de == pour être flexible
-                let r = "EN ATTENTE"; let cl = "text-slate-600";
+                const m = matchs.find(x => x.id.toString() === p.matchId.toString());
+                let finalStatus = "EN ATTENTE"; 
+                let cl = "text-slate-600";
+                
                 if(m && m.winner) {
-                    if(m.winner === p.prono) { r = "GAGNÉ ✅"; cl = "text-green-500"; pts[p.user] = (pts[p.user] || 0) + 1; }
-                    else { r = "PERDU ❌"; cl = "text-red-500"; pts[p.user] = (pts[p.user] || 0); }
+                    if(m.winner === p.prono) { 
+                        finalStatus = "GAGNÉ ✅"; 
+                        cl = "text-green-500"; 
+                        pts[p.user] = (pts[p.user] || 0) + 1; 
+                    } else { 
+                        finalStatus = "PERDU ❌"; 
+                        cl = "text-red-500"; 
+                        pts[p.user] = (pts[p.user] || 0); 
+                    }
                 }
                 return `
                 <div class="bg-slate-900/40 p-4 rounded-xl border border-slate-800 flex justify-between items-center text-[10px] uppercase font-bold mb-2">
@@ -213,7 +222,7 @@
                         <button onclick="deletePari('${p.id}')" class="text-red-600 p-1"><i class="fa-solid fa-trash-can"></i></button>
                         <span>${p.user} : <span class="${p.prono==='Maxime'?'text-blue-400':'text-red-400'}">${p.prono}</span></span>
                     </div>
-                    <span class="${cl}">${r}</span>
+                    <span class="${cl}">${finalStatus}</span>
                 </div>`;
             }).join('');
 

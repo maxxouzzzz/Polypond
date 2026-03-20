@@ -27,7 +27,7 @@
 
     <main class="p-4 max-w-2xl mx-auto">
         <div class="flex bg-slate-900 p-1 rounded-xl mb-6 border border-slate-800 sticky top-20 z-[30]">
-            <button id="btn-matchs" onclick="switchTab('matchs')" class="flex-1 py-3 rounded-lg font-bold text-[10px] bg-slate-800 text-white uppercase">Live & Matchs</button>
+            <button id="btn-matchs" onclick="switchTab('matchs')" class="flex-1 py-3 rounded-lg font-bold text-[10px] bg-slate-800 text-white shadow uppercase">Live & Matchs</button>
             <button id="btn-paris" onclick="switchTab('paris')" class="flex-1 py-3 rounded-lg font-bold text-[10px] text-slate-400 uppercase">Paris & Potes</button>
         </div>
 
@@ -39,7 +39,7 @@
         </div>
 
         <div id="tab-paris" class="hidden space-y-6">
-            <button onclick="openModal('pari')" class="w-full py-5 bg-blue-900/20 border-2 border-dashed border-blue-500/30 rounded-2xl text-blue-400 font-bold uppercase text-[10px] active:bg-blue-900/40">+ PLACER UN PARI</button>
+            <button onclick="openModal('pari')" class="w-full py-5 bg-blue-900/20 border-2 border-dashed border-blue-500/30 rounded-2xl text-blue-400 font-bold uppercase text-[10px]">+ PLACER UN PARI</button>
             <div id="list-paris" class="space-y-2"></div>
             <div class="bg-slate-900 border border-slate-800 p-5 rounded-3xl mt-4">
                 <h2 class="text-center font-black uppercase text-yellow-500 mb-4 italic tracking-widest text-[10px]">Classement Général</h2>
@@ -51,8 +51,8 @@
     <div id="modal-match" class="fixed inset-0 bg-black/95 hidden z-[100] p-6 flex items-center justify-center backdrop-blur-md">
         <div class="bg-slate-900 border border-slate-800 w-full max-w-xs rounded-3xl p-6 shadow-2xl">
             <h2 class="font-bold mb-4 uppercase text-blue-500 text-xs">Programmer un match</h2>
-            <input id="match-label" type="text" placeholder="Titre (ex: Match du soir)" class="w-full bg-slate-800 border border-slate-700 p-4 rounded-xl mb-3 outline-none text-white text-base">
-            <input id="match-date" type="date" class="w-full bg-slate-800 border border-slate-700 p-4 rounded-xl mb-6 text-white outline-none text-base">
+            <input id="match-label" type="text" placeholder="Titre (ex: Match du soir)" class="w-full bg-slate-800 border border-slate-700 p-4 rounded-xl mb-3 text-white text-base outline-none">
+            <input id="match-date" type="date" class="w-full bg-slate-800 border border-slate-700 p-4 rounded-xl mb-6 text-white text-base outline-none">
             <div class="flex gap-2">
                 <button onclick="closeModal('match')" class="flex-1 py-4 text-slate-500 font-bold uppercase text-[10px]">Annuler</button>
                 <button onclick="saveMatch()" class="flex-1 py-4 bg-blue-600 rounded-xl font-bold uppercase text-[10px]">Créer</button>
@@ -63,26 +63,27 @@
     <div id="modal-pari" class="fixed inset-0 bg-black/95 hidden z-[100] p-6 flex items-center justify-center backdrop-blur-md">
         <div class="bg-slate-900 border border-slate-800 w-full max-w-xs rounded-3xl p-6 shadow-2xl">
             <h2 class="font-bold mb-4 uppercase text-blue-500 text-center text-[10px] tracking-widest">TON PRONOSTIC</h2>
-            <input id="pari-user" type="text" placeholder="Ton Prénom" class="w-full bg-slate-800 border border-slate-700 p-4 rounded-xl mb-3 outline-none text-white uppercase text-base">
-            <select id="pari-match-id" class="w-full bg-slate-800 border border-slate-700 p-4 rounded-xl mb-4 text-white outline-none text-base"></select>
+            <input id="pari-user" type="text" placeholder="Ton Prénom" class="w-full bg-slate-800 border border-slate-700 p-4 rounded-xl mb-3 text-white uppercase text-base outline-none">
+            <select id="pari-match-id" class="w-full bg-slate-800 border border-slate-700 p-4 rounded-xl mb-4 text-white text-base outline-none"></select>
             <div class="grid grid-cols-2 gap-2 mb-6">
                 <button id="pari-maxime" onclick="selectPari('Maxime')" class="p-4 border border-slate-700 rounded-xl font-bold uppercase text-[10px]">Maxime</button>
                 <button id="pari-alan" onclick="selectPari('Alan')" class="p-4 border border-slate-700 rounded-xl font-bold uppercase text-[10px]">Alan</button>
             </div>
-            <button onclick="savePari()" class="w-full py-5 bg-blue-600 rounded-2xl font-black uppercase text-[11px] shadow-lg shadow-blue-900/40">Valider le Pari</button>
-            <button onclick="closeModal('pari')" class="w-full mt-3 py-2 text-slate-500 text-[10px] uppercase">Fermer</button>
+            <button onclick="savePari()" class="w-full py-5 bg-blue-600 rounded-2xl font-black uppercase text-[11px] shadow-lg">Valider le Pari</button>
+            <button onclick="closeModal('pari')" class="w-full mt-3 py-2 text-slate-500 text-[10px] uppercase text-center">Fermer</button>
         </div>
     </div>
 
     <div id="modal-score" class="fixed inset-0 bg-black/95 hidden z-[100] p-6 flex items-center justify-center backdrop-blur-md">
-        <div class="bg-slate-900 border border-slate-800 w-full max-w-xs rounded-3xl p-6">
+        <div class="bg-slate-900 border border-slate-800 w-full max-w-xs rounded-3xl p-6 shadow-2xl">
             <h2 class="font-bold mb-4 uppercase text-blue-500 text-center text-xs">Score Final</h2>
             <div class="grid grid-cols-2 gap-2 mb-4">
                 <button id="win-maxime" onclick="selectWinner('Maxime')" class="p-4 border border-slate-700 rounded-xl font-bold uppercase text-[10px]">Maxime</button>
                 <button id="win-alan" onclick="selectWinner('Alan')" class="p-4 border border-slate-700 rounded-xl font-bold uppercase text-[10px]">Alan</button>
             </div>
-            <input id="final-score" type="text" placeholder="Score (ex: 11-8)" class="w-full bg-slate-800 border border-slate-700 p-4 rounded-xl mb-6 text-center text-xl font-bold text-white">
+            <input id="final-score" type="text" placeholder="Score (ex: 11-8)" class="w-full bg-slate-800 border border-slate-700 p-4 rounded-xl mb-6 text-center text-xl font-bold text-white outline-none">
             <button onclick="validateMatch()" class="w-full py-5 bg-green-600 rounded-xl font-bold uppercase text-[10px]">Enregistrer le résultat</button>
+            <button onclick="closeModal('score')" class="w-full mt-3 py-2 text-slate-500 text-[10px] uppercase text-center font-bold">Annuler</button>
         </div>
     </div>
 
@@ -108,8 +109,16 @@
         let tempP = ""; let tempW = ""; let activeId = null;
         let matchs = []; let paris = []; let myChart = null;
 
-        db.ref('matchs').on('value', (s) => { const d = s.val(); matchs = d ? Object.entries(d).map(([id, v]) => ({...v, id})) : []; render(); });
-        db.ref('paris').on('value', (s) => { const d = s.val(); paris = d ? Object.entries(d).map(([id, v]) => ({...v, id})) : []; render(); });
+        db.ref('matchs').on('value', (s) => { 
+            const d = s.val(); 
+            matchs = d ? Object.entries(d).map(([id, v]) => ({...v, id})) : []; 
+            render(); 
+        });
+        db.ref('paris').on('value', (s) => { 
+            const d = s.val(); 
+            paris = d ? Object.entries(d).map(([id, v]) => ({...v, id})) : []; 
+            render(); 
+        });
 
         function switchTab(t) {
             document.getElementById('tab-matchs').classList.toggle('hidden', t !== 'matchs');
@@ -137,7 +146,7 @@
             const l = document.getElementById('match-label').value;
             const d = document.getElementById('match-date').value;
             if(!l || !d) return alert("Remplis tout !");
-            const id = Date.now();
+            const id = Date.now().toString(); // On force l'ID en texte
             db.ref('matchs/' + id).set({ id, label: l, date: d, winner: null, score: null });
             closeModal('match');
         }
@@ -145,14 +154,14 @@
         function savePari() {
             const u = document.getElementById('pari-user').value;
             const mId = document.getElementById('pari-match-id').value;
-            if(!u || !tempP || !mId || mId === "null") return alert("Choisis ton prénom, le match et ton champion !");
-            db.ref('paris/').push({ user: u, prono: tempP, matchId: parseInt(mId) });
+            if(!u || !tempP || !mId || mId === "null") return alert("Choisis ton prénom et ton champion !");
+            db.ref('paris/').push({ user: u, prono: tempP, matchId: mId }); // mId est déjà du texte
             closeModal('pari');
         }
 
         function validateMatch() {
             const s = document.getElementById('final-score').value;
-            if(!tempW || !s) return alert("Qui a gagné et quel est le score ?");
+            if(!tempW || !s) return alert("Qui a gagné ?");
             db.ref('matchs/' + activeId).update({ winner: tempW, score: s });
             closeModal('score');
         }
@@ -192,7 +201,7 @@
 
             const pts = {};
             document.getElementById('list-paris').innerHTML = paris.map(p => {
-                const m = matchs.find(x => x.id === p.matchId);
+                const m = matchs.find(x => x.id == p.matchId); // Utilisation de == pour être flexible
                 let r = "EN ATTENTE"; let cl = "text-slate-600";
                 if(m && m.winner) {
                     if(m.winner === p.prono) { r = "GAGNÉ ✅"; cl = "text-green-500"; pts[p.user] = (pts[p.user] || 0) + 1; }

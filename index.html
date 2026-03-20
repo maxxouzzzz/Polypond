@@ -106,13 +106,14 @@
         let matchs = []; let paris = []; let myChart = null;
 
         db.ref('matchs').on('value', (snap) => {
-            matchs = snap.val() ? Object.values(snap.val()) : [];
+            const data = snap.val();
+            matchs = data ? Object.entries(data).map(([id, val]) => ({...val, id})) : [];
             render();
         });
 
-        // Lecture spéciale pour garder les IDs des paris
         db.ref('paris').on('value', (snap) => {
             const data = snap.val();
+            // On transforme l'objet de Google en liste avec des IDs propres
             paris = data ? Object.entries(data).map(([id, val]) => ({...val, id})) : [];
             render();
         });
@@ -125,8 +126,6 @@
         }
 
         function deleteMatch(id) { if(confirm("Supprimer ce match ?")) db.ref('matchs/' + id).remove(); }
-        
-        // Nouvelle fonction pour supprimer un pari
         function deletePari(id) { if(confirm("Supprimer ce pari ?")) db.ref('paris/' + id).remove(); }
 
         function saveMatch() {
@@ -145,7 +144,7 @@
             closeModal('pari');
         }
 
-        function validateMatch() {
+        function validateMatch(id) {
             const s = document.getElementById('final-score').value;
             db.ref('matchs/' + activeId).update({ winner: tempW, score: s });
             closeModal('score');
@@ -176,15 +175,15 @@
                             <p class="text-[8px] text-slate-500 uppercase font-black">${m.date}</p>
                             <div class="flex items-center gap-2">
                                 <p class="font-bold text-white uppercase text-xs">${m.label}</p>
-                                <button onclick="deleteMatch(${m.id})" class="text-slate-700 hover:text-red-500"><i class="fa-solid fa-trash-can text-[10px]"></i></button>
+                                <button onclick="deleteMatch('${m.id}')" class="text-red-900 hover:text-red-500"><i class="fa-solid fa-trash-can text-[10px]"></i></button>
                             </div>
-                            ${m.winner ? `<p class="text-[9px] font-black ${m.winner==='Maxime'?'text-blue-400':'text-red-400'} italic uppercase">${m.winner} Gagne</p>` : `<button onclick="openModal('score', ${m.id})" class="text-[9px] text-blue-500 font-bold uppercase underline">Terminer</button>`}
+                            ${m.winner ? `<p class="text-[9px] font-black ${m.winner==='Maxime'?'text-blue-400':'text-red-400'} italic uppercase">${m.winner} Gagne</p>` : `<button onclick="openModal('score', '${m.id}')" class="text-[9px] text-blue-500 font-bold uppercase underline">Terminer</button>`}
                         </div>
                     </div>
                     <div class="text-xl font-black text-slate-300 font-mono">${m.score || '⏳'}</div>
                 </div>`).join('');
 
-            // Liste Paris avec Bouton Supprimer
+            // Liste Paris avec Poubelle ROUGE
             const pts = {};
             document.getElementById('list-paris').innerHTML = paris.map(p => {
                 const m = matchs.find(x => x.id === p.matchId);
@@ -196,7 +195,9 @@
                 return `
                 <div class="bg-slate-900/40 p-3 rounded-xl border border-slate-800 flex justify-between items-center text-[10px] uppercase font-bold mb-2">
                     <div class="flex items-center gap-3">
-                        <button onclick="deletePari('${p.id}')" class="text-slate-700 hover:text-red-500"><i class="fa-solid fa-trash-can"></i></button>
+                        <button onclick="deletePari('${p.id}')" class="text-red-600 hover:text-red-400 p-1">
+                            <i class="fa-solid fa-trash-can"></i>
+                        </button>
                         <span>${p.user} : ${p.prono}</span>
                     </div>
                     <span class="${cl}">${res}</span>

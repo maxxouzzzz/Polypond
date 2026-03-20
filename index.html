@@ -15,7 +15,7 @@
     <header class="p-4 flex justify-between items-center border-b border-slate-800 bg-slate-900/80 sticky top-0 backdrop-blur-md z-30">
         <div>
             <h1 class="text-xl font-black tracking-tighter text-blue-500 italic uppercase">POLYPONG LIVE</h1>
-            <p id="stats-summary" class="text-[10px] text-slate-500 uppercase font-bold tracking-widest mt-1">Connexion en cours...</p>
+            <p id="stats-summary" class="text-[10px] text-slate-500 uppercase font-bold tracking-widest mt-1">Connexion...</p>
         </div>
         <button onclick="openModal('match')" class="bg-blue-600 text-white px-4 py-2 rounded-xl font-bold text-xs shadow-lg shadow-blue-900/40">+ MATCH</button>
     </header>
@@ -30,13 +30,11 @@
             <div class="bg-slate-900 border border-slate-800 p-4 rounded-3xl overflow-hidden shadow-2xl">
                 <canvas id="mainChart" style="max-height: 180px;"></canvas>
             </div>
-            <div id="list-matchs" class="space-y-3">
-                <p class="text-center text-slate-600 py-10">Chargement des matchs...</p>
-            </div>
+            <div id="list-matchs" class="space-y-3"></div>
         </div>
 
         <div id="tab-paris" class="hidden space-y-6">
-            <button onclick="openModal('pari')" class="w-full py-4 bg-blue-900/20 border-2 border-dashed border-blue-500/30 rounded-2xl text-blue-400 font-bold uppercase text-xs tracking-widest">+ PLACER UN PARI</button>
+            <button onclick="openModal('pari')" class="w-full py-4 bg-blue-900/20 border-2 border-dashed border-blue-500/30 rounded-2xl text-blue-400 font-bold uppercase text-xs">+ PLACER UN PARI</button>
             <div id="list-paris" class="space-y-2"></div>
             <div class="bg-slate-900 border border-slate-800 p-5 rounded-3xl">
                 <h2 class="text-center font-black uppercase text-yellow-500 mb-4 italic tracking-widest text-[10px]">Classement Général</h2>
@@ -47,8 +45,8 @@
 
     <div id="modal-match" class="fixed inset-0 bg-black/95 hidden z-50 p-6 flex items-center justify-center backdrop-blur-sm">
         <div class="bg-slate-900 border border-slate-800 w-full max-w-xs rounded-3xl p-6">
-            <h2 class="font-bold mb-4 uppercase text-blue-500 text-xs">Programmer un match</h2>
-            <input id="match-label" type="text" placeholder="Titre (ex: Match du soir)" class="w-full bg-slate-800 border border-slate-700 p-3 rounded-xl mb-3 outline-none text-white">
+            <h2 class="font-bold mb-4 uppercase text-blue-500 text-xs">Nouveau Match</h2>
+            <input id="match-label" type="text" placeholder="Titre" class="w-full bg-slate-800 border border-slate-700 p-3 rounded-xl mb-3 text-white outline-none">
             <input id="match-date" type="date" class="w-full bg-slate-800 border border-slate-700 p-3 rounded-xl mb-6 text-white outline-none">
             <div class="flex gap-2">
                 <button onclick="closeModal('match')" class="flex-1 py-3 text-slate-500 font-bold uppercase text-[10px]">Annuler</button>
@@ -59,33 +57,31 @@
 
     <div id="modal-pari" class="fixed inset-0 bg-black/95 hidden z-50 p-6 flex items-center justify-center">
         <div class="bg-slate-900 border border-slate-800 w-full max-w-xs rounded-3xl p-6">
-            <h2 class="font-bold mb-4 uppercase text-blue-500 text-center text-[10px] tracking-widest">TON PRONOSTIC</h2>
-            <input id="pari-user" type="text" placeholder="Ton Prénom" class="w-full bg-slate-800 border border-slate-700 p-3 rounded-xl mb-3 outline-none text-white uppercase text-[10px]">
+            <h2 class="font-bold mb-4 uppercase text-blue-500 text-center text-[10px]">TON PRONO</h2>
+            <input id="pari-user" type="text" placeholder="Ton Prénom" class="w-full bg-slate-800 border border-slate-700 p-3 rounded-xl mb-3 text-white uppercase text-[10px]">
             <select id="pari-match-id" class="w-full bg-slate-800 border border-slate-700 p-3 rounded-xl mb-4 text-white outline-none"></select>
             <div class="grid grid-cols-2 gap-2 mb-6">
                 <button onclick="tempP='Maxime'" class="p-3 border border-slate-700 rounded-xl font-bold focus:bg-blue-600 uppercase text-[10px]">Maxime</button>
                 <button onclick="tempP='Alan'" class="p-3 border border-slate-700 rounded-xl font-bold focus:bg-red-600 uppercase text-[10px]">Alan</button>
             </div>
-            <button onclick="savePari()" class="w-full py-4 bg-blue-600 rounded-2xl font-black uppercase text-[10px]">Valider le Pari</button>
+            <button onclick="savePari()" class="w-full py-4 bg-blue-600 rounded-2xl font-black uppercase text-[10px]">Valider</button>
             <button onclick="closeModal('pari')" class="w-full mt-2 py-2 text-slate-500 text-[9px] uppercase">Fermer</button>
         </div>
     </div>
 
     <div id="modal-score" class="fixed inset-0 bg-black/95 hidden z-50 p-6 flex items-center justify-center">
         <div class="bg-slate-900 border border-slate-800 w-full max-w-xs rounded-3xl p-6">
-            <h2 class="font-bold mb-4 uppercase text-blue-500 text-center text-xs">Résultat Final</h2>
+            <h2 class="font-bold mb-4 uppercase text-blue-500 text-center text-xs">Score Final</h2>
             <div class="grid grid-cols-2 gap-2 mb-4">
                 <button onclick="tempW='Maxime'" class="p-3 border border-slate-700 rounded-xl focus:bg-blue-600 uppercase text-[10px]">Maxime</button>
                 <button onclick="tempW='Alan'" class="p-3 border border-slate-700 rounded-xl focus:bg-red-600 uppercase text-[10px]">Alan</button>
             </div>
             <input id="final-score" type="text" placeholder="Score (ex: 11-8)" class="w-full bg-slate-800 border border-slate-700 p-3 rounded-xl mb-6 text-center text-xl font-bold text-white">
             <button onclick="validateMatch()" class="w-full py-4 bg-green-600 rounded-xl font-bold uppercase text-[10px]">Enregistrer</button>
-            <button onclick="closeModal('score')" class="w-full mt-2 py-2 text-slate-500 text-[9px] uppercase">Annuler</button>
         </div>
     </div>
 
     <script>
-        // --- CONFIGURATION FIREBASE ---
         const firebaseConfig = {
             apiKey: "AIzaSyB3c2XjiG6WQvhPFwgReFOIlO61Z86OqHk",
             authDomain: "polypong-e47fd.firebaseapp.com",
@@ -109,17 +105,18 @@
         let tempP = ""; let tempW = ""; let activeId = null;
         let matchs = []; let paris = []; let myChart = null;
 
-        // --- ECOUTE CLOUD ---
         db.ref('matchs').on('value', (snap) => {
             matchs = snap.val() ? Object.values(snap.val()) : [];
             render();
         });
+
+        // Lecture spéciale pour garder les IDs des paris
         db.ref('paris').on('value', (snap) => {
-            paris = snap.val() ? Object.values(snap.val()) : [];
+            const data = snap.val();
+            paris = data ? Object.entries(data).map(([id, val]) => ({...val, id})) : [];
             render();
         });
 
-        // --- NAVIGATION ---
         function switchTab(t) {
             document.getElementById('tab-matchs').classList.toggle('hidden', t !== 'matchs');
             document.getElementById('tab-paris').classList.toggle('hidden', t !== 'paris');
@@ -127,15 +124,14 @@
             document.getElementById('btn-paris').className = t === 'paris' ? "flex-1 py-2 rounded-lg font-bold text-[10px] bg-slate-800 text-white shadow uppercase" : "flex-1 py-2 rounded-lg font-bold text-[10px] text-slate-400 uppercase";
         }
 
-        // --- ACTIONS ---
-        function deleteMatch(id) {
-            if(confirm("Supprimer définitivement ce match ?")) db.ref('matchs/' + id).remove();
-        }
+        function deleteMatch(id) { if(confirm("Supprimer ce match ?")) db.ref('matchs/' + id).remove(); }
+        
+        // Nouvelle fonction pour supprimer un pari
+        function deletePari(id) { if(confirm("Supprimer ce pari ?")) db.ref('paris/' + id).remove(); }
 
         function saveMatch() {
             const l = document.getElementById('match-label').value;
             const d = document.getElementById('match-date').value;
-            if(!l || !d) return alert("Remplis tout !");
             const id = Date.now();
             db.ref('matchs/' + id).set({ id, label: l, date: d, winner: null, score: null });
             closeModal('match');
@@ -151,7 +147,6 @@
 
         function validateMatch() {
             const s = document.getElementById('final-score').value;
-            if(!tempW || !s) return alert("Choisis un vainqueur et un score !");
             db.ref('matchs/' + activeId).update({ winner: tempW, score: s });
             closeModal('score');
         }
@@ -167,70 +162,59 @@
         }
         function closeModal(id) { document.getElementById('modal-'+id).classList.add('hidden'); }
 
-        // --- DESSIN DE L'INTERFACE ---
         function render() {
             const mW = matchs.filter(m => m.winner === 'Maxime').length;
             const aW = matchs.filter(m => m.winner === 'Alan').length;
-            
-            // Mise à jour du titre
-            const stats = document.getElementById('stats-summary');
-            if(stats) stats.innerText = `LIVE : MAXIME ${mW} - ${aW} ALAN`;
+            document.getElementById('stats-summary').innerText = `LIVE : MAXIME ${mW} - ${aW} ALAN`;
 
-            // Liste des Matchs
-            const listM = document.getElementById('list-matchs');
-            if(listM) {
-                listM.innerHTML = matchs.sort((a,b)=>b.id-a.id).map(m => `
-                    <div class="bg-slate-900 p-4 rounded-2xl border ${m.winner ? 'border-slate-800' : 'border-blue-500/50 shadow-lg shadow-blue-950/20'} flex justify-between items-center mb-3">
-                        <div class="flex items-center gap-3">
-                            <img referrerpolicy="no-referrer" src="${m.winner ? PLAYER_PHOTOS[m.winner] : VS_IMAGE_URL}" class="w-10 h-10 rounded-full border border-slate-700 object-cover bg-slate-800">
-                            <div>
-                                <p class="text-[8px] text-slate-500 uppercase font-black">${m.date}</p>
-                                <div class="flex items-center gap-2">
-                                    <p class="font-bold text-white uppercase text-xs">${m.label}</p>
-                                    <button onclick="deleteMatch(${m.id})" class="text-slate-700 hover:text-red-500 transition-colors"><i class="fa-solid fa-trash-can text-[10px]"></i></button>
-                                </div>
-                                ${m.winner ? 
-                                    `<p class="text-[9px] font-black ${m.winner==='Maxime'?'text-blue-400':'text-red-400'} italic uppercase">${m.winner} Gagne</p>` : 
-                                    `<button onclick="openModal('score', ${m.id})" class="text-[9px] text-blue-500 font-bold uppercase underline">Terminer</button>`
-                                }
+            // Liste Matchs
+            document.getElementById('list-matchs').innerHTML = matchs.sort((a,b)=>b.id-a.id).map(m => `
+                <div class="bg-slate-900 p-4 rounded-2xl border ${m.winner ? 'border-slate-800' : 'border-blue-500/50 shadow-lg'} flex justify-between items-center mb-3">
+                    <div class="flex items-center gap-3">
+                        <img referrerpolicy="no-referrer" src="${m.winner ? PLAYER_PHOTOS[m.winner] : VS_IMAGE_URL}" class="w-10 h-10 rounded-full border border-slate-700 object-cover bg-slate-800">
+                        <div>
+                            <p class="text-[8px] text-slate-500 uppercase font-black">${m.date}</p>
+                            <div class="flex items-center gap-2">
+                                <p class="font-bold text-white uppercase text-xs">${m.label}</p>
+                                <button onclick="deleteMatch(${m.id})" class="text-slate-700 hover:text-red-500"><i class="fa-solid fa-trash-can text-[10px]"></i></button>
                             </div>
+                            ${m.winner ? `<p class="text-[9px] font-black ${m.winner==='Maxime'?'text-blue-400':'text-red-400'} italic uppercase">${m.winner} Gagne</p>` : `<button onclick="openModal('score', ${m.id})" class="text-[9px] text-blue-500 font-bold uppercase underline">Terminer</button>`}
                         </div>
-                        <div class="text-xl font-black text-slate-300 font-mono">${m.score || '⏳'}</div>
-                    </div>`).join('');
-            }
+                    </div>
+                    <div class="text-xl font-black text-slate-300 font-mono">${m.score || '⏳'}</div>
+                </div>`).join('');
 
-            // Paris & Classement
-            const points = {};
-            const listP = document.getElementById('list-paris');
-            if(listP) {
-                listP.innerHTML = paris.map(p => {
-                    const m = matchs.find(x => x.id === p.matchId);
-                    let res = "EN ATTENTE"; let cl = "text-slate-600";
-                    if(m && m.winner) {
-                        if(m.winner === p.prono) { res = "GAGNÉ ✅"; cl = "text-green-500"; points[p.user] = (points[p.user] || 0) + 1; }
-                        else { res = "PERDU ❌"; cl = "text-red-500"; points[p.user] = (points[p.user] || 0); }
-                    }
-                    return `<div class="bg-slate-900/40 p-3 rounded-xl border border-slate-800 flex justify-between text-[10px] uppercase font-bold mb-2"><span>${p.user} : ${p.prono}</span><span class="${cl}">${res}</span></div>`;
-                }).join('');
-            }
+            // Liste Paris avec Bouton Supprimer
+            const pts = {};
+            document.getElementById('list-paris').innerHTML = paris.map(p => {
+                const m = matchs.find(x => x.id === p.matchId);
+                let res = "EN ATTENTE"; let cl = "text-slate-600";
+                if(m && m.winner) {
+                    if(m.winner === p.prono) { res = "GAGNÉ ✅"; cl = "text-green-500"; pts[p.user] = (pts[p.user] || 0) + 1; }
+                    else { res = "PERDU ❌"; cl = "text-red-500"; pts[p.user] = (pts[p.user] || 0); }
+                }
+                return `
+                <div class="bg-slate-900/40 p-3 rounded-xl border border-slate-800 flex justify-between items-center text-[10px] uppercase font-bold mb-2">
+                    <div class="flex items-center gap-3">
+                        <button onclick="deletePari('${p.id}')" class="text-slate-700 hover:text-red-500"><i class="fa-solid fa-trash-can"></i></button>
+                        <span>${p.user} : ${p.prono}</span>
+                    </div>
+                    <span class="${cl}">${res}</span>
+                </div>`;
+            }).join('');
 
-            const leader = document.getElementById('leaderboard');
-            if(leader) {
-                leader.innerHTML = Object.entries(points).sort((a,b)=>b[1]-a[1]).map(([n, pts], i) => `
-                    <div class="flex justify-between items-center bg-slate-950 p-3 rounded-xl border-l-4 ${i===0?'border-yellow-500':'border-blue-600'} mb-2">
-                        <span class="font-bold text-xs">${i+1}. ${n}</span><span class="font-black text-blue-400 italic">${pts} PTS</span>
-                    </div>`).join('');
-            }
+            document.getElementById('leaderboard').innerHTML = Object.entries(pts).sort((a,b)=>b[1]-a[1]).map(([n, p], i) => `
+                <div class="flex justify-between items-center bg-slate-950 p-3 rounded-xl border-l-4 ${i===0?'border-yellow-500':'border-blue-600'} mb-2">
+                    <span class="font-bold text-xs">${i+1}. ${n}</span><span class="font-black text-blue-400 italic">${p} PTS</span>
+                </div>`).join('');
 
             updateChart(mW, aW);
         }
 
         function updateChart(mW, aW) {
-            const chartElem = document.getElementById('mainChart');
-            if(!chartElem) return;
-            const ctx = chartElem.getContext('2d');
+            const ctx = document.getElementById('mainChart').getContext('2d');
             if(myChart) myChart.destroy();
-            myChart = new Chart(ctx, { type: 'bar', data: { labels: ['M', 'A'], datasets: [{ data: [mW, aW], backgroundColor: ['#3b82f6', '#ef4444'], borderRadius: 10 }] }, options: { indexAxis: 'y', plugins: { legend: { display: false } }, scales: { x: { display: false, suggestedMax: Math.max(mW, aW) + 1 }, y: { ticks: { color: '#fff', font: { weight: 'bold' } } } } } });
+            myChart = new Chart(ctx, { type: 'bar', data: { labels: ['M', 'A'], datasets: [{ data: [mW, aW], backgroundColor: ['#3b82f6', '#ef4444'], borderRadius: 10 }] }, options: { indexAxis: 'y', plugins: { legend: { display: false } }, scales: { x: { display: false, suggestedMax: Math.max(mW, aW) + 1 }, y: { ticks: { color: '#fff' } } } } });
         }
     </script>
 </body>

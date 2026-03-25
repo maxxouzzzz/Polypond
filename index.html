@@ -9,13 +9,10 @@
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.0.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.0.0/firebase-database-compat.js"></script>
-    
     <style>
-        /* Styles pour les boutons de sélection (Mobile & PC) */
         .btn-active-blue { background-color: #2563eb !important; border-color: #3b82f6 !important; color: white !important; }
         .btn-active-red { background-color: #dc2626 !important; border-color: #ef4444 !important; color: white !important; }
         input, select, button { cursor: pointer; -webkit-tap-highlight-color: transparent; }
-        .modal-open { overflow: hidden; }
     </style>
 </head>
 <body class="bg-slate-950 text-slate-100 min-h-screen pb-24 font-sans text-sm select-none">
@@ -25,34 +22,27 @@
             <h1 class="text-lg font-black tracking-tighter text-blue-500 italic uppercase">POLYPONG LIVE</h1>
             <p id="stats-summary" class="text-[9px] text-slate-500 uppercase font-bold tracking-widest mt-1">Connexion...</p>
         </div>
-        <button onclick="openModal('match')" class="bg-blue-600 text-white px-4 py-2 rounded-xl font-bold text-[10px] shadow-lg active:scale-95 transition-transform">+ MATCH</button>
+        <button onclick="openModal('match')" class="bg-blue-600 text-white px-4 py-2 rounded-xl font-bold text-[10px] shadow-lg active:scale-95">+ MATCH</button>
     </header>
 
     <main class="p-4 max-w-2xl mx-auto">
         <div class="flex bg-slate-900 p-1 rounded-xl mb-6 border border-slate-800 sticky top-20 z-[30]">
-            <button id="btn-matchs" onclick="switchTab('matchs')" class="flex-1 py-3 rounded-lg font-bold text-[10px] bg-slate-800 text-white shadow uppercase tracking-tighter transition-all">Live & Matchs</button>
-            <button id="btn-paris" onclick="switchTab('paris')" class="flex-1 py-3 rounded-lg font-bold text-[10px] text-slate-400 uppercase tracking-tighter transition-all">Paris & Potes</button>
+            <button id="btn-matchs" onclick="switchTab('matchs')" class="flex-1 py-3 rounded-lg font-bold text-[10px] bg-slate-800 text-white shadow uppercase">Live & Matchs</button>
+            <button id="btn-paris" onclick="switchTab('paris')" class="flex-1 py-3 rounded-lg font-bold text-[10px] text-slate-400 uppercase">Paris & Potes</button>
         </div>
 
         <div id="tab-matchs" class="space-y-6">
             <div class="bg-slate-900 border border-slate-800 p-4 rounded-3xl overflow-hidden shadow-2xl">
                 <canvas id="mainChart" style="max-height: 160px;"></canvas>
             </div>
-            <div id="list-matchs" class="space-y-3">
-                <p class="text-center text-slate-600 py-10">Chargement des matchs...</p>
-            </div>
+            <div id="list-matchs" class="space-y-3"></div>
         </div>
 
         <div id="tab-paris" class="hidden space-y-6">
-            <button onclick="openModal('pari')" class="w-full py-5 bg-blue-900/20 border-2 border-dashed border-blue-500/30 rounded-2xl text-blue-400 font-bold uppercase text-[10px] active:bg-blue-900/40 transition-colors">+ PLACER UN PARI</button>
-            
-            <div id="list-paris" class="space-y-2"></div>
-
-            <div class="bg-slate-900 border border-slate-800 p-5 rounded-3xl mt-4 shadow-xl">
+            <button onclick="openModal('pari')" class="w-full py-5 bg-blue-900/20 border-2 border-dashed border-blue-500/30 rounded-2xl text-blue-400 font-bold uppercase text-[10px]">+ PLACER UN PARI</button>
+            <div id="list-paris" class="space-y-6"></div> <div class="bg-slate-900 border border-slate-800 p-5 rounded-3xl mt-4">
                 <h2 class="text-center font-black uppercase text-yellow-500 mb-4 italic tracking-widest text-[10px]">Classement Général</h2>
-                <div id="leaderboard" class="space-y-2">
-                    <p class="text-center text-slate-700 text-[9px]">Aucun point marqué pour l'instant</p>
-                </div>
+                <div id="leaderboard" class="space-y-2"></div>
             </div>
         </div>
     </main>
@@ -91,13 +81,13 @@
                 <button id="win-alan" onclick="selectWinner('Alan')" class="p-4 border border-slate-700 rounded-xl font-bold uppercase text-[10px]">Alan</button>
             </div>
             <input id="final-score" type="text" placeholder="Score (ex: 11-8)" class="w-full bg-slate-800 border border-slate-700 p-4 rounded-xl mb-6 text-center text-xl font-bold text-white outline-none">
-            <button onclick="validateMatch()" class="w-full py-5 bg-green-600 rounded-xl font-bold uppercase text-[10px]">Enregistrer le résultat</button>
+            <button onclick="validateMatch()" class="w-full py-5 bg-green-600 rounded-xl font-bold uppercase text-[10px]">Enregistrer</button>
             <button onclick="closeModal('score')" class="w-full mt-3 py-2 text-slate-500 text-[10px] uppercase text-center font-bold">Annuler</button>
         </div>
     </div>
 
     <script>
-        // --- CONFIGURATION FIREBASE ---
+        // CONFIG
         const firebaseConfig = {
             apiKey: "AIzaSyB3c2XjiG6WQvhPFwgReFOIlO61Z86OqHk",
             authDomain: "polypong-e47fd.firebaseapp.com",
@@ -110,7 +100,6 @@
         firebase.initializeApp(firebaseConfig);
         const db = firebase.database();
 
-        // --- DONNÉES GLOBALES ---
         const PLAYER_PHOTOS = {
             'Maxime': 'https://i.postimg.cc/4dyK7Tz3/IMG-1306.png',
             'Alan': 'https://i.postimg.cc/Jn0yDWbz/Resized-20241214-1341581.jpg'
@@ -120,7 +109,7 @@
         let tempP = ""; let tempW = ""; let activeId = null;
         let matchs = []; let paris = []; let myChart = null;
 
-        // --- ECOUTE FIREBASE (TEMPS RÉEL) ---
+        // FETCH
         db.ref('matchs').on('value', (s) => { 
             const d = s.val(); 
             matchs = d ? Object.entries(d).map(([id, v]) => ({...v, id: id.toString()})) : []; 
@@ -132,7 +121,7 @@
             render(); 
         });
 
-        // --- NAVIGATION ---
+        // NAV
         function switchTab(t) {
             document.getElementById('tab-matchs').classList.toggle('hidden', t !== 'matchs');
             document.getElementById('tab-paris').classList.toggle('hidden', t !== 'paris');
@@ -140,7 +129,7 @@
             document.getElementById('btn-paris').className = t === 'paris' ? "flex-1 py-3 rounded-lg font-bold text-[10px] bg-slate-800 text-white shadow uppercase" : "flex-1 py-3 rounded-lg font-bold text-[10px] text-slate-400 uppercase";
         }
 
-        // --- LOGIQUE DE SÉLECTION (VISUEL) ---
+        // SELECTIONS
         function selectPari(p) {
             tempP = p;
             document.getElementById('pari-maxime').className = p === 'Maxime' ? 'p-4 border rounded-xl font-bold uppercase text-[10px] btn-active-blue' : 'p-4 border border-slate-700 rounded-xl font-bold uppercase text-[10px]';
@@ -153,8 +142,8 @@
             document.getElementById('win-alan').className = p === 'Alan' ? 'p-4 border rounded-xl font-bold uppercase text-[10px] btn-active-red' : 'p-4 border border-slate-700 rounded-xl font-bold uppercase text-[10px]';
         }
 
-        // --- ACTIONS BDD ---
-        function deleteMatch(id) { if(confirm("Supprimer ce match et ses paris ?")) db.ref('matchs/' + id).remove(); }
+        // BDD ACTIONS
+        function deleteMatch(id) { if(confirm("Supprimer ce match ?")) db.ref('matchs/' + id).remove(); }
         function deletePari(id) { if(confirm("Supprimer ce pari ?")) db.ref('paris/' + id).remove(); }
 
         function saveMatch() {
@@ -167,154 +156,38 @@
         }
 
         function savePari() {
-            const userRaw = document.getElementById('pari-user').value;
-            const userName = userRaw.trim().toLowerCase();
-            const matchId = document.getElementById('pari-match-id').value;
+            const uRaw = document.getElementById('pari-user').value.trim();
+            const uName = uRaw.toLowerCase();
+            const mId = document.getElementById('pari-match-id').value;
 
-            if(!userName || !tempP || !matchId || matchId === "null") {
-                return alert("⚠️ Remplis ton nom et choisis ton champion !");
-            }
+            if(!uName || !tempP || !mId || mId === "null") return alert("Formulaire incomplet !");
 
-            // --- LA BARRIÈRE ANTI-DOUBLON ---
-            const dejaJoue = paris.find(p => 
-                p.user.trim().toLowerCase() === userName && 
-                p.matchId.toString() === matchId.toString()
-            );
+            const dejaJoue = paris.find(p => p.user.trim().toLowerCase() === uName && p.matchId.toString() === mId.toString());
+            if (dejaJoue) return alert("👮‍♂️ Pari déjà enregistré pour ce match !");
 
-            if (dejaJoue) {
-                return alert("👮‍♂️ Hey " + userRaw.trim() + ", tu as déjà parié sur ce match ! Va niquer ta mère.");
-            }
-
-            db.ref('paris/').push({ user: userRaw.trim(), prono: tempP, matchId: matchId.toString() });
+            db.ref('paris/').push({ user: uRaw, prono: tempP, matchId: mId.toString() });
             closeModal('pari');
-            alert("✅ Pari validé pour " + userRaw.trim());
         }
 
         function validateMatch() {
             const s = document.getElementById('final-score').value;
-            if(!tempW || !s) return alert("Choisis le vainqueur et tape le score !");
+            if(!tempW || !s) return alert("Qui a gagné ?");
             db.ref('matchs/' + activeId).update({ winner: tempW, score: s });
             closeModal('score');
         }
 
-        // --- GESTION FENÊTRES ---
         function openModal(id, mId = null) { 
             if(id === 'score') { activeId = mId; tempW = ""; selectWinner(''); }
             if(id === 'pari') { 
                 tempP = ""; selectPari('');
-                const sel = document.getElementById('pari-match-id');
                 const o = matchs.filter(m => !m.winner);
-                sel.innerHTML = o.length ? o.map(m => `<option value="${m.id}">${m.label}</option>`).join('') : '<option value="null">Aucun match ouvert</option>';
+                document.getElementById('pari-match-id').innerHTML = o.length ? o.map(m => `<option value="${m.id}">${m.label}</option>`).join('') : '<option value="null">Aucun match ouvert</option>';
             }
             document.getElementById('modal-'+id).classList.remove('hidden');
         }
         function closeModal(id) { document.getElementById('modal-'+id).classList.add('hidden'); }
 
-        // --- AFFICHAGE FINAL ---
+        // RENDER (DESSIN)
         function render() {
             const mW = matchs.filter(m => m.winner === 'Maxime').length;
             const aW = matchs.filter(m => m.winner === 'Alan').length;
-            document.getElementById('stats-summary').innerText = `LIVE : MAXIME ${mW} - ${aW} ALAN`;
-
-            // 1. Liste des Matchs (Onglet 1)
-            document.getElementById('list-matchs').innerHTML = matchs.sort((a,b)=>b.id-a.id).map(m => `
-                <div class="bg-slate-900 p-4 rounded-2xl border ${m.winner ? 'border-slate-800' : 'border-blue-500/50 shadow-lg'} flex justify-between items-center mb-3">
-                    <div class="flex items-center gap-3">
-                        <img referrerpolicy="no-referrer" src="${m.winner ? PLAYER_PHOTOS[m.winner] : VS_IMAGE_URL}" class="w-10 h-10 rounded-full border border-slate-700 object-cover bg-slate-800">
-                        <div>
-                            <p class="text-[8px] text-slate-500 font-black uppercase">${m.date}</p>
-                            <div class="flex items-center gap-2">
-                                <p class="font-bold text-white uppercase text-xs leading-none">${m.label}</p>
-                                <button onclick="deleteMatch('${m.id}')" class="text-red-900/50"><i class="fa-solid fa-trash-can text-[10px]"></i></button>
-                            </div>
-                            ${m.winner ? `<p class="text-[9px] font-black ${m.winner==='Maxime'?'text-blue-400':'text-red-400'} italic uppercase mt-1">${m.winner} Gagne</p>` : `<button onclick="openModal('score', '${m.id}')" class="text-[9px] text-blue-500 font-bold uppercase underline mt-1">Terminer</button>`}
-                        </div>
-                    </div>
-                    <div class="text-xl font-black text-slate-300 font-mono">${m.score || '⏳'}</div>
-                </div>`).join('');
-
-            // --- 2. SECTION PARIS (Onglet 2) - LE NOUVEAU CODE EST ICI ---
-            const pts = {}; // Pour calculer le leaderboard
-            const listP = document.getElementById('list-paris');
-            
-            // On trie les matchs du plus récent au plus ancien
-            const matchsTries = [...matchs].sort((a, b) => b.id - a.id);
-
-            listP.innerHTML = matchsTries.map(m => {
-                // On récupère les paris liés à ce match
-                const parisDuMatch = paris.filter(p => p.matchId.toString() === m.id.toString());
-                
-                // Si aucun pari sur ce match, on ne dessine rien pour ce match
-                if (parisDuMatch.length === 0) return '';
-
-                return `
-                <div class="mb-6">
-                    <div class="flex items-center gap-2 mb-2 px-1">
-                        <div class="w-1 h-3 bg-blue-500 rounded-full"></div>
-                        <h3 class="text-[10px] font-black uppercase text-slate-500 tracking-wider">${m.label}</h3>
-                    </div>
-                    <div class="space-y-2">
-                        ${parisDuMatch.reverse().map(p => { // reverse() pour avoir le dernier pari en haut
-                            let finalStatus = "EN ATTENTE"; let cl = "text-slate-600";
-                            if(m.winner) {
-                                if(m.winner === p.prono) { 
-                                    finalStatus = "GAGNÉ ✅"; cl = "text-green-500"; 
-                                    pts[p.user] = (pts[p.user] || 0) + 1; 
-                                } else { 
-                                    finalStatus = "PERDU ❌"; cl = "text-red-500"; 
-                                    pts[p.user] = (pts[p.user] || 0); 
-                                }
-                            }
-                            return `
-                            <div class="bg-slate-900/40 p-4 rounded-xl border border-slate-800 flex justify-between items-center text-[10px] uppercase font-bold">
-                                <div class="flex items-center gap-3">
-                                    <button onclick="deletePari('${p.id}')" class="text-red-600"><i class="fa-solid fa-trash-can"></i></button>
-                                    <span>${p.user} : <span class="${p.prono==='Maxime'?'text-blue-400':'text-red-400'}">${p.prono}</span></span>
-                                </div>
-                                <span class="${cl}">${finalStatus}</span>
-                            </div>`;
-                        }).join('')}
-                    </div>
-                </div>`;
-            }).join('');
-
-            // Message si aucun pari du tout
-            if (listP.innerHTML === "") {
-                listP.innerHTML = '<p class="text-center text-slate-700 py-10 text-[10px] uppercase font-bold">Aucun pari pour le moment</p>';
-            }
-
-            // 3. Leaderboard
-            document.getElementById('leaderboard').innerHTML = Object.entries(pts).sort((a,b)=>b[1]-a[1]).map(([n, p], i) => `
-                <div class="flex justify-between items-center bg-slate-950 p-4 rounded-xl border-l-4 ${i===0?'border-yellow-500 shadow-lg':'border-blue-600'} mb-2">
-                    <span class="font-bold text-xs">${i+1}. ${n}</span><span class="font-black text-blue-400 italic">${p} PTS</span>
-                </div>`).join('');
-
-            updateChart(mW, aW);
-        }
-        // --- GRAPHIQUE ---
-        function updateChart(mW, aW) {
-            const ctx = document.getElementById('mainChart').getContext('2d');
-            if(myChart) myChart.destroy();
-            myChart = new Chart(ctx, { 
-                type: 'bar', 
-                data: { 
-                    labels: ['M', 'A'], 
-                    datasets: [{ 
-                        data: [mW, aW], 
-                        backgroundColor: ['#3b82f6', '#ef4444'], 
-                        borderRadius: 10 
-                    }] 
-                }, 
-                options: { 
-                    indexAxis: 'y', 
-                    plugins: { legend: { display: false } }, 
-                    scales: { 
-                        x: { display: false, suggestedMax: Math.max(mW, aW) + 1 }, 
-                        y: { ticks: { color: '#fff', font: { weight: 'bold' } } } 
-                    } 
-                } 
-            });
-        }
-    </script>
-</body>
-</html>

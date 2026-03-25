@@ -127,10 +127,35 @@
             document.getElementById('btn-paris').className = t === 'paris' ? "flex-1 py-3 rounded-lg font-bold text-[10px] bg-slate-800 text-white shadow uppercase" : "flex-1 py-3 rounded-lg font-bold text-[10px] text-slate-400 uppercase";
         }
 
-        function selectPari(p) {
-            tempP = p;
-            document.getElementById('pari-maxime').className = p === 'Maxime' ? 'p-4 border rounded-xl font-bold uppercase text-[10px] btn-active-blue' : 'p-4 border border-slate-700 rounded-xl font-bold uppercase text-[10px]';
-            document.getElementById('pari-alan').className = p === 'Alan' ? 'p-4 border rounded-xl font-bold uppercase text-[10px] btn-active-red' : 'p-4 border border-slate-700 rounded-xl font-bold uppercase text-[10px]';
+        function savePari() {
+            const u = document.getElementById('pari-user').value.trim(); // On enlève les espaces inutiles
+            const mId = document.getElementById('pari-match-id').value;
+            
+            if(!u || !tempP || !mId || mId === "null") {
+                return alert("Remplis tout : ton nom, le match et ton champion !");
+            }
+        
+            // --- LA SÉCURITÉ ANTI-DOUBLON ---
+            // On cherche si un pari existe déjà avec ce nom ET ce matchId
+            const dejaParie = paris.find(p => 
+                p.user.toLowerCase() === u.toLowerCase() && 
+                p.matchId.toString() === mId.toString()
+            );
+        
+            if(dejaParie) {
+                return alert("Hé ho ! " + u + ", tu as déjà mis un pari sur ce match. Un seul par personne ! 😉");
+            }
+            // --------------------------------
+        
+            // Si tout est bon, on enregistre
+            db.ref('paris/').push({ 
+                user: u, 
+                prono: tempP, 
+                matchId: mId.toString() 
+            });
+            
+            closeModal('pari');
+            alert("Pari enregistré, bonne chance " + u + " !");
         }
 
         function selectWinner(p) {

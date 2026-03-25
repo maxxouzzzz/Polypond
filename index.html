@@ -9,10 +9,13 @@
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.0.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.0.0/firebase-database-compat.js"></script>
+    
     <style>
+        /* Styles pour les boutons de sélection (Mobile & PC) */
         .btn-active-blue { background-color: #2563eb !important; border-color: #3b82f6 !important; color: white !important; }
         .btn-active-red { background-color: #dc2626 !important; border-color: #ef4444 !important; color: white !important; }
         input, select, button { cursor: pointer; -webkit-tap-highlight-color: transparent; }
+        .modal-open { overflow: hidden; }
     </style>
 </head>
 <body class="bg-slate-950 text-slate-100 min-h-screen pb-24 font-sans text-sm select-none">
@@ -27,30 +30,36 @@
 
     <main class="p-4 max-w-2xl mx-auto">
         <div class="flex bg-slate-900 p-1 rounded-xl mb-6 border border-slate-800 sticky top-20 z-[30]">
-            <button id="btn-matchs" onclick="switchTab('matchs')" class="flex-1 py-3 rounded-lg font-bold text-[10px] bg-slate-800 text-white shadow uppercase">Live & Matchs</button>
-            <button id="btn-paris" onclick="switchTab('paris')" class="flex-1 py-3 rounded-lg font-bold text-[10px] text-slate-400 uppercase">Paris & Potes</button>
+            <button id="btn-matchs" onclick="switchTab('matchs')" class="flex-1 py-3 rounded-lg font-bold text-[10px] bg-slate-800 text-white shadow uppercase tracking-tighter transition-all">Live & Matchs</button>
+            <button id="btn-paris" onclick="switchTab('paris')" class="flex-1 py-3 rounded-lg font-bold text-[10px] text-slate-400 uppercase tracking-tighter transition-all">Paris & Potes</button>
         </div>
 
         <div id="tab-matchs" class="space-y-6">
             <div class="bg-slate-900 border border-slate-800 p-4 rounded-3xl overflow-hidden shadow-2xl">
                 <canvas id="mainChart" style="max-height: 160px;"></canvas>
             </div>
-            <div id="list-matchs" class="space-y-3"></div>
+            <div id="list-matchs" class="space-y-3">
+                <p class="text-center text-slate-600 py-10">Chargement des matchs...</p>
+            </div>
         </div>
 
         <div id="tab-paris" class="hidden space-y-6">
-            <button onclick="openModal('pari')" class="w-full py-5 bg-blue-900/20 border-2 border-dashed border-blue-500/30 rounded-2xl text-blue-400 font-bold uppercase text-[10px]">+ PLACER UN PARI</button>
+            <button onclick="openModal('pari')" class="w-full py-5 bg-blue-900/20 border-2 border-dashed border-blue-500/30 rounded-2xl text-blue-400 font-bold uppercase text-[10px] active:bg-blue-900/40 transition-colors">+ PLACER UN PARI</button>
+            
             <div id="list-paris" class="space-y-2"></div>
-            <div class="bg-slate-900 border border-slate-800 p-5 rounded-3xl mt-4">
+
+            <div class="bg-slate-900 border border-slate-800 p-5 rounded-3xl mt-4 shadow-xl">
                 <h2 class="text-center font-black uppercase text-yellow-500 mb-4 italic tracking-widest text-[10px]">Classement Général</h2>
-                <div id="leaderboard" class="space-y-2"></div>
+                <div id="leaderboard" class="space-y-2">
+                    <p class="text-center text-slate-700 text-[9px]">Aucun point marqué pour l'instant</p>
+                </div>
             </div>
         </div>
     </main>
 
     <div id="modal-match" class="fixed inset-0 bg-black/95 hidden z-[100] p-6 flex items-center justify-center backdrop-blur-md">
         <div class="bg-slate-900 border border-slate-800 w-full max-w-xs rounded-3xl p-6 shadow-2xl">
-            <h2 class="font-bold mb-4 uppercase text-blue-500 text-xs text-center">Programmer un match</h2>
+            <h2 class="font-bold mb-4 uppercase text-blue-500 text-xs text-center">Nouveau Match</h2>
             <input id="match-label" type="text" placeholder="Titre (ex: Match du soir)" class="w-full bg-slate-800 border border-slate-700 p-4 rounded-xl mb-3 text-white text-base outline-none">
             <input id="match-date" type="date" class="w-full bg-slate-800 border border-slate-700 p-4 rounded-xl mb-6 text-white text-base outline-none">
             <div class="flex gap-2">
@@ -88,6 +97,7 @@
     </div>
 
     <script>
+        // --- CONFIGURATION FIREBASE ---
         const firebaseConfig = {
             apiKey: "AIzaSyB3c2XjiG6WQvhPFwgReFOIlO61Z86OqHk",
             authDomain: "polypong-e47fd.firebaseapp.com",
@@ -100,6 +110,7 @@
         firebase.initializeApp(firebaseConfig);
         const db = firebase.database();
 
+        // --- DONNÉES GLOBALES ---
         const PLAYER_PHOTOS = {
             'Maxime': 'https://i.postimg.cc/4dyK7Tz3/IMG-1306.png',
             'Alan': 'https://i.postimg.cc/Jn0yDWbz/Resized-20241214-1341581.jpg'
@@ -109,6 +120,7 @@
         let tempP = ""; let tempW = ""; let activeId = null;
         let matchs = []; let paris = []; let myChart = null;
 
+        // --- ECOUTE FIREBASE (TEMPS RÉEL) ---
         db.ref('matchs').on('value', (s) => { 
             const d = s.val(); 
             matchs = d ? Object.entries(d).map(([id, v]) => ({...v, id: id.toString()})) : []; 
@@ -120,6 +132,7 @@
             render(); 
         });
 
+        // --- NAVIGATION ---
         function switchTab(t) {
             document.getElementById('tab-matchs').classList.toggle('hidden', t !== 'matchs');
             document.getElementById('tab-paris').classList.toggle('hidden', t !== 'paris');
@@ -127,36 +140,11 @@
             document.getElementById('btn-paris').className = t === 'paris' ? "flex-1 py-3 rounded-lg font-bold text-[10px] bg-slate-800 text-white shadow uppercase" : "flex-1 py-3 rounded-lg font-bold text-[10px] text-slate-400 uppercase";
         }
 
-        function savePari() {
-            const u = document.getElementById('pari-user').value.trim(); // .trim() enlève les espaces
-            const mId = document.getElementById('pari-match-id').value;
-            
-            // 1. Vérification que le formulaire est rempli
-            if(!u || !tempP || !mId || mId === "null") {
-                return alert("Remplis tout : ton nom, le match et ton champion !");
-            }
-        
-            // 2. LA BARRIÈRE : On vérifie si ce mec a déjà mis un pari sur ce match précis
-            // On compare le nom (en minuscule pour éviter les tricheurs) ET l'ID du match
-            const dejaJoue = paris.find(p => 
-                p.user.trim().toLowerCase() === u.toLowerCase() && 
-                p.matchId.toString() === mId.toString()
-            );
-        
-            if (dejaJoue) {
-                alert("👮‍♂️ Stop ! " + u + ", tu as déjà parié sur ce match. Pas de double chance ici !");
-                return; // IMPORTANT : ça arrête la fonction ici, donc rien n'est envoyé à Firebase
-            }
-        
-            // 3. Si on arrive ici, c'est que c'est bon, on enregistre
-            db.ref('paris/').push({ 
-                user: u, 
-                prono: tempP, 
-                matchId: mId.toString() 
-            });
-            
-            closeModal('pari');
-            alert("Pari validé pour " + u + " !");
+        // --- LOGIQUE DE SÉLECTION (VISUEL) ---
+        function selectPari(p) {
+            tempP = p;
+            document.getElementById('pari-maxime').className = p === 'Maxime' ? 'p-4 border rounded-xl font-bold uppercase text-[10px] btn-active-blue' : 'p-4 border border-slate-700 rounded-xl font-bold uppercase text-[10px]';
+            document.getElementById('pari-alan').className = p === 'Alan' ? 'p-4 border rounded-xl font-bold uppercase text-[10px] btn-active-red' : 'p-4 border border-slate-700 rounded-xl font-bold uppercase text-[10px]';
         }
 
         function selectWinner(p) {
@@ -165,7 +153,8 @@
             document.getElementById('win-alan').className = p === 'Alan' ? 'p-4 border rounded-xl font-bold uppercase text-[10px] btn-active-red' : 'p-4 border border-slate-700 rounded-xl font-bold uppercase text-[10px]';
         }
 
-        function deleteMatch(id) { if(confirm("Supprimer ce match ?")) db.ref('matchs/' + id).remove(); }
+        // --- ACTIONS BDD ---
+        function deleteMatch(id) { if(confirm("Supprimer ce match et ses paris ?")) db.ref('matchs/' + id).remove(); }
         function deletePari(id) { if(confirm("Supprimer ce pari ?")) db.ref('paris/' + id).remove(); }
 
         function saveMatch() {
@@ -178,20 +167,37 @@
         }
 
         function savePari() {
-            const u = document.getElementById('pari-user').value;
-            const mId = document.getElementById('pari-match-id').value;
-            if(!u || !tempP || !mId || mId === "null") return alert("Choisis ton prénom et ton champion !");
-            db.ref('paris/').push({ user: u, prono: tempP, matchId: mId.toString() });
+            const userRaw = document.getElementById('pari-user').value;
+            const userName = userRaw.trim().toLowerCase();
+            const matchId = document.getElementById('pari-match-id').value;
+
+            if(!userName || !tempP || !matchId || matchId === "null") {
+                return alert("⚠️ Remplis ton nom et choisis ton champion !");
+            }
+
+            // --- LA BARRIÈRE ANTI-DOUBLON ---
+            const dejaJoue = paris.find(p => 
+                p.user.trim().toLowerCase() === userName && 
+                p.matchId.toString() === matchId.toString()
+            );
+
+            if (dejaJoue) {
+                return alert("👮‍♂️ Hey " + userRaw.trim() + ", tu as déjà parié sur ce match ! Pas de double prono.");
+            }
+
+            db.ref('paris/').push({ user: userRaw.trim(), prono: tempP, matchId: matchId.toString() });
             closeModal('pari');
+            alert("✅ Pari validé pour " + userRaw.trim());
         }
 
         function validateMatch() {
             const s = document.getElementById('final-score').value;
-            if(!tempW || !s) return alert("Qui a gagné ?");
+            if(!tempW || !s) return alert("Choisis le vainqueur et tape le score !");
             db.ref('matchs/' + activeId).update({ winner: tempW, score: s });
             closeModal('score');
         }
 
+        // --- GESTION FENÊTRES ---
         function openModal(id, mId = null) { 
             if(id === 'score') { activeId = mId; tempW = ""; selectWinner(''); }
             if(id === 'pari') { 
@@ -204,11 +210,13 @@
         }
         function closeModal(id) { document.getElementById('modal-'+id).classList.add('hidden'); }
 
+        // --- AFFICHAGE FINAL ---
         function render() {
             const mW = matchs.filter(m => m.winner === 'Maxime').length;
             const aW = matchs.filter(m => m.winner === 'Alan').length;
             document.getElementById('stats-summary').innerText = `LIVE : MAXIME ${mW} - ${aW} ALAN`;
 
+            // Liste des Matchs
             document.getElementById('list-matchs').innerHTML = matchs.sort((a,b)=>b.id-a.id).map(m => `
                 <div class="bg-slate-900 p-4 rounded-2xl border ${m.winner ? 'border-slate-800' : 'border-blue-500/50 shadow-lg'} flex justify-between items-center mb-3">
                     <div class="flex items-center gap-3">
@@ -217,7 +225,7 @@
                             <p class="text-[8px] text-slate-500 font-black uppercase">${m.date}</p>
                             <div class="flex items-center gap-2">
                                 <p class="font-bold text-white uppercase text-xs leading-none">${m.label}</p>
-                                <button onclick="deleteMatch('${m.id}')" class="text-red-900/50 p-1"><i class="fa-solid fa-trash-can text-[10px]"></i></button>
+                                <button onclick="deleteMatch('${m.id}')" class="text-red-900/50 hover:text-red-500"><i class="fa-solid fa-trash-can text-[10px]"></i></button>
                             </div>
                             ${m.winner ? `<p class="text-[9px] font-black ${m.winner==='Maxime'?'text-blue-400':'text-red-400'} italic uppercase mt-1">${m.winner} Gagne</p>` : `<button onclick="openModal('score', '${m.id}')" class="text-[9px] text-blue-500 font-bold uppercase underline mt-1">Terminer</button>`}
                         </div>
@@ -225,45 +233,65 @@
                     <div class="text-xl font-black text-slate-300 font-mono">${m.score || '⏳'}</div>
                 </div>`).join('');
 
+            // Liste des Paris
             const pts = {};
             document.getElementById('list-paris').innerHTML = paris.map(p => {
                 const m = matchs.find(x => x.id.toString() === p.matchId.toString());
-                let finalStatus = "EN ATTENTE"; 
-                let cl = "text-slate-600";
+                let finalStatus = "EN ATTENTE"; let cl = "text-slate-600";
                 
                 if(m && m.winner) {
                     if(m.winner === p.prono) { 
-                        finalStatus = "GAGNÉ ✅"; 
-                        cl = "text-green-500"; 
+                        finalStatus = "GAGNÉ ✅"; cl = "text-green-500"; 
                         pts[p.user] = (pts[p.user] || 0) + 1; 
                     } else { 
-                        finalStatus = "PERDU ❌"; 
-                        cl = "text-red-500"; 
+                        finalStatus = "PERDU ❌"; cl = "text-red-500"; 
                         pts[p.user] = (pts[p.user] || 0); 
                     }
                 }
                 return `
                 <div class="bg-slate-900/40 p-4 rounded-xl border border-slate-800 flex justify-between items-center text-[10px] uppercase font-bold mb-2">
                     <div class="flex items-center gap-3">
-                        <button onclick="deletePari('${p.id}')" class="text-red-600 p-1"><i class="fa-solid fa-trash-can"></i></button>
+                        <button onclick="deletePari('${p.id}')" class="text-red-600 hover:text-red-400"><i class="fa-solid fa-trash-can"></i></button>
                         <span>${p.user} : <span class="${p.prono==='Maxime'?'text-blue-400':'text-red-400'}">${p.prono}</span></span>
                     </div>
                     <span class="${cl}">${finalStatus}</span>
                 </div>`;
             }).join('');
 
-            document.getElementById('leaderboard').innerHTML = Object.entries(pts).sort((a,b)=>b[1]-a[1]).map(([n, p], i) => `
-                <div class="flex justify-between items-center bg-slate-950 p-4 rounded-xl border-l-4 ${i===0?'border-yellow-500 shadow-lg shadow-yellow-900/10':'border-blue-600'} mb-2">
+            // Leaderboard
+            const leaderContent = Object.entries(pts).sort((a,b)=>b[1]-a[1]).map(([n, p], i) => `
+                <div class="flex justify-between items-center bg-slate-950 p-4 rounded-xl border-l-4 ${i===0?'border-yellow-500 shadow-lg':'border-blue-600'} mb-2">
                     <span class="font-bold text-xs">${i+1}. ${n}</span><span class="font-black text-blue-400 italic">${p} PTS</span>
                 </div>`).join('');
+            
+            document.getElementById('leaderboard').innerHTML = leaderContent || '<p class="text-center text-slate-700 text-[9px]">Aucun point pour le moment</p>';
 
             updateChart(mW, aW);
         }
 
+        // --- GRAPHIQUE ---
         function updateChart(mW, aW) {
             const ctx = document.getElementById('mainChart').getContext('2d');
             if(myChart) myChart.destroy();
-            myChart = new Chart(ctx, { type: 'bar', data: { labels: ['M', 'A'], datasets: [{ data: [mW, aW], backgroundColor: ['#3b82f6', '#ef4444'], borderRadius: 10 }] }, options: { indexAxis: 'y', plugins: { legend: { display: false } }, scales: { x: { display: false, suggestedMax: Math.max(mW, aW) + 1 }, y: { ticks: { color: '#fff', font: { weight: 'bold' } } } } } });
+            myChart = new Chart(ctx, { 
+                type: 'bar', 
+                data: { 
+                    labels: ['M', 'A'], 
+                    datasets: [{ 
+                        data: [mW, aW], 
+                        backgroundColor: ['#3b82f6', '#ef4444'], 
+                        borderRadius: 10 
+                    }] 
+                }, 
+                options: { 
+                    indexAxis: 'y', 
+                    plugins: { legend: { display: false } }, 
+                    scales: { 
+                        x: { display: false, suggestedMax: Math.max(mW, aW) + 1 }, 
+                        y: { ticks: { color: '#fff', font: { weight: 'bold' } } } 
+                    } 
+                } 
+            });
         }
     </script>
 </body>

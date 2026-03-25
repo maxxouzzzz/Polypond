@@ -216,7 +216,7 @@
             const aW = matchs.filter(m => m.winner === 'Alan').length;
             document.getElementById('stats-summary').innerText = `LIVE : MAXIME ${mW} - ${aW} ALAN`;
 
-            // Liste des Matchs
+            // 1. Liste des Matchs (Onglet 1)
             document.getElementById('list-matchs').innerHTML = matchs.sort((a,b)=>b.id-a.id).map(m => `
                 <div class="bg-slate-900 p-4 rounded-2xl border ${m.winner ? 'border-slate-800' : 'border-blue-500/50 shadow-lg'} flex justify-between items-center mb-3">
                     <div class="flex items-center gap-3">
@@ -225,7 +225,7 @@
                             <p class="text-[8px] text-slate-500 font-black uppercase">${m.date}</p>
                             <div class="flex items-center gap-2">
                                 <p class="font-bold text-white uppercase text-xs leading-none">${m.label}</p>
-                                <button onclick="deleteMatch('${m.id}')" class="text-red-900/50 hover:text-red-500"><i class="fa-solid fa-trash-can text-[10px]"></i></button>
+                                <button onclick="deleteMatch('${m.id}')" class="text-red-900/50"><i class="fa-solid fa-trash-can text-[10px]"></i></button>
                             </div>
                             ${m.winner ? `<p class="text-[9px] font-black ${m.winner==='Maxime'?'text-blue-400':'text-red-400'} italic uppercase mt-1">${m.winner} Gagne</p>` : `<button onclick="openModal('score', '${m.id}')" class="text-[9px] text-blue-500 font-bold uppercase underline mt-1">Terminer</button>`}
                         </div>
@@ -233,42 +233,64 @@
                     <div class="text-xl font-black text-slate-300 font-mono">${m.score || '⏳'}</div>
                 </div>`).join('');
 
-            // Liste des Paris
-            const pts = {};
-            document.getElementById('list-paris').innerHTML = paris.map(p => {
-                const m = matchs.find(x => x.id.toString() === p.matchId.toString());
-                let finalStatus = "EN ATTENTE"; let cl = "text-slate-600";
+            // --- 2. SECTION PARIS (Onglet 2) - LE NOUVEAU CODE EST ICI ---
+            const pts = {}; // Pour calculer le leaderboard
+            const listP = document.getElementById('list-paris');
+            
+            // On trie les matchs du plus récent au plus ancien
+            const matchsTries = [...matchs].sort((a, b) => b.id - a.id);
+
+            listP.innerHTML = matchsTries.map(m => {
+                // On récupère les paris liés à ce match
+                const parisDuMatch = paris.filter(p => p.matchId.toString() === m.id.toString());
                 
-                if(m && m.winner) {
-                    if(m.winner === p.prono) { 
-                        finalStatus = "GAGNÉ ✅"; cl = "text-green-500"; 
-                        pts[p.user] = (pts[p.user] || 0) + 1; 
-                    } else { 
-                        finalStatus = "PERDU ❌"; cl = "text-red-500"; 
-                        pts[p.user] = (pts[p.user] || 0); 
-                    }
-                }
+                // Si aucun pari sur ce match, on ne dessine rien pour ce match
+                if (parisDuMatch.length === 0) return '';
+
                 return `
-                <div class="bg-slate-900/40 p-4 rounded-xl border border-slate-800 flex justify-between items-center text-[10px] uppercase font-bold mb-2">
-                    <div class="flex items-center gap-3">
-                        <button onclick="deletePari('${p.id}')" class="text-red-600 hover:text-red-400"><i class="fa-solid fa-trash-can"></i></button>
-                        <span>${p.user} : <span class="${p.prono==='Maxime'?'text-blue-400':'text-red-400'}">${p.prono}</span></span>
+                <div class="mb-6">
+                    <div class="flex items-center gap-2 mb-2 px-1">
+                        <div class="w-1 h-3 bg-blue-500 rounded-full"></div>
+                        <h3 class="text-[10px] font-black uppercase text-slate-500 tracking-wider">${m.label}</h3>
                     </div>
-                    <span class="${cl}">${finalStatus}</span>
+                    <div class="space-y-2">
+                        ${parisDuMatch.reverse().map(p => { // reverse() pour avoir le dernier pari en haut
+                            let finalStatus = "EN ATTENTE"; let cl = "text-slate-600";
+                            if(m.winner) {
+                                if(m.winner === p.prono) { 
+                                    finalStatus = "GAGNÉ ✅"; cl = "text-green-500"; 
+                                    pts[p.user] = (pts[p.user] || 0) + 1; 
+                                } else { 
+                                    finalStatus = "PERDU ❌"; cl = "text-red-500"; 
+                                    pts[p.user] = (pts[p.user] || 0); 
+                                }
+                            }
+                            return `
+                            <div class="bg-slate-900/40 p-4 rounded-xl border border-slate-800 flex justify-between items-center text-[10px] uppercase font-bold">
+                                <div class="flex items-center gap-3">
+                                    <button onclick="deletePari('${p.id}')" class="text-red-600"><i class="fa-solid fa-trash-can"></i></button>
+                                    <span>${p.user} : <span class="${p.prono==='Maxime'?'text-blue-400':'text-red-400'}">${p.prono}</span></span>
+                                </div>
+                                <span class="${cl}">${finalStatus}</span>
+                            </div>`;
+                        }).join('')}
+                    </div>
                 </div>`;
             }).join('');
 
-            // Leaderboard
-            const leaderContent = Object.entries(pts).sort((a,b)=>b[1]-a[1]).map(([n, p], i) => `
+            // Message si aucun pari du tout
+            if (listP.innerHTML === "") {
+                listP.innerHTML = '<p class="text-center text-slate-700 py-10 text-[10px] uppercase font-bold">Aucun pari pour le moment</p>';
+            }
+
+            // 3. Leaderboard
+            document.getElementById('leaderboard').innerHTML = Object.entries(pts).sort((a,b)=>b[1]-a[1]).map(([n, p], i) => `
                 <div class="flex justify-between items-center bg-slate-950 p-4 rounded-xl border-l-4 ${i===0?'border-yellow-500 shadow-lg':'border-blue-600'} mb-2">
                     <span class="font-bold text-xs">${i+1}. ${n}</span><span class="font-black text-blue-400 italic">${p} PTS</span>
                 </div>`).join('');
-            
-            document.getElementById('leaderboard').innerHTML = leaderContent || '<p class="text-center text-slate-700 text-[9px]">Aucun point pour le moment</p>';
 
             updateChart(mW, aW);
         }
-
         // --- GRAPHIQUE ---
         function updateChart(mW, aW) {
             const ctx = document.getElementById('mainChart').getContext('2d');

@@ -182,7 +182,7 @@
             );
 
             if (dejaJoue) {
-                return alert("👮‍♂️ Hey " + userRaw.trim() + ", tu as déjà parié sur ce match ! Pas de double prono.");
+                return alert("👮‍♂️ Hey " + userRaw.trim() + ", tu as déjà parié sur ce match ! Va niquer ta mère.");
             }
 
             db.ref('paris/').push({ user: userRaw.trim(), prono: tempP, matchId: matchId.toString() });

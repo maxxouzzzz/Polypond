@@ -128,26 +128,27 @@
         }
 
         function savePari() {
-            const u = document.getElementById('pari-user').value.trim(); // On enlève les espaces inutiles
+            const u = document.getElementById('pari-user').value.trim(); // .trim() enlève les espaces
             const mId = document.getElementById('pari-match-id').value;
             
+            // 1. Vérification que le formulaire est rempli
             if(!u || !tempP || !mId || mId === "null") {
                 return alert("Remplis tout : ton nom, le match et ton champion !");
             }
         
-            // --- LA SÉCURITÉ ANTI-DOUBLON ---
-            // On cherche si un pari existe déjà avec ce nom ET ce matchId
-            const dejaParie = paris.find(p => 
-                p.user.toLowerCase() === u.toLowerCase() && 
+            // 2. LA BARRIÈRE : On vérifie si ce mec a déjà mis un pari sur ce match précis
+            // On compare le nom (en minuscule pour éviter les tricheurs) ET l'ID du match
+            const dejaJoue = paris.find(p => 
+                p.user.trim().toLowerCase() === u.toLowerCase() && 
                 p.matchId.toString() === mId.toString()
             );
         
-            if(dejaParie) {
-                return alert("Hé ho ! " + u + ", tu as déjà mis un pari sur ce match. Un seul par personne ! 😉");
+            if (dejaJoue) {
+                alert("👮‍♂️ Stop ! " + u + ", tu as déjà parié sur ce match. Pas de double chance ici !");
+                return; // IMPORTANT : ça arrête la fonction ici, donc rien n'est envoyé à Firebase
             }
-            // --------------------------------
         
-            // Si tout est bon, on enregistre
+            // 3. Si on arrive ici, c'est que c'est bon, on enregistre
             db.ref('paris/').push({ 
                 user: u, 
                 prono: tempP, 
@@ -155,7 +156,7 @@
             });
             
             closeModal('pari');
-            alert("Pari enregistré, bonne chance " + u + " !");
+            alert("Pari validé pour " + u + " !");
         }
 
         function selectWinner(p) {

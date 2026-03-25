@@ -13,88 +13,82 @@
 
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;700;900&display=swap');
-        body { font-family: 'Inter', sans-serif; background: radial-gradient(circle at top, #0f172a 0%, #020617 100%); }
-        .glass { background: rgba(30, 41, 59, 0.7); backdrop-filter: blur(12px); border: 1px solid rgba(255, 255, 255, 0.05); }
-        .btn-active-blue { background: linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%) !important; color: white !important; box-shadow: 0 4px 15px rgba(59, 130, 246, 0.4); border: none !important; }
-        .btn-active-red { background: linear-gradient(135deg, #ef4444 0%, #b91c1c 100%) !important; color: white !important; box-shadow: 0 4px 15px rgba(239, 68, 68, 0.4); border: none !important; }
-        @keyframes pulse {
-            0% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(239, 68, 68, 0.7); }
-            70% { transform: scale(1); box-shadow: 0 0 0 10px rgba(239, 68, 68, 0); }
-            100% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(239, 68, 68, 0); }
-        }
+        body { font-family: 'Inter', sans-serif; background: #020617; }
+        .glass { background: rgba(30, 41, 59, 0.7); backdrop-filter: blur(10px); border: 1px solid rgba(255, 255, 255, 0.05); }
+        .btn-active-blue { background: #3b82f6 !important; color: white !important; }
+        .btn-active-red { background: #ef4444 !important; color: white !important; }
         .live-dot { width: 8px; height: 8px; background: #ef4444; border-radius: 50%; animation: pulse 1.5s infinite; }
-        .fade-up { animation: fadeUp 0.5s ease-out forwards; }
-        @keyframes fadeUp { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+        @keyframes pulse { 0% { opacity: 1; } 50% { opacity: 0.3; } 100% { opacity: 1; } }
+        .fade-up { animation: fade 0.4s ease-out; }
+        @keyframes fade { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
     </style>
 </head>
-<body class="text-slate-100 min-h-screen pb-24 select-none overflow-x-hidden">
+<body class="text-slate-100 min-h-screen pb-24 overflow-x-hidden">
 
     <header class="p-5 flex justify-between items-center sticky top-0 z-[40] glass border-b border-white/5">
         <div>
-            <h1 class="text-xl font-black tracking-tighter bg-gradient-to-r from-blue-400 to-indigo-500 bg-clip-text text-transparent italic uppercase">POLYPONG LIVE</h1>
-            <p id="stats-summary" class="text-[10px] text-slate-400 uppercase font-bold tracking-widest mt-1">Chargement...</p>
+            <h1 class="text-xl font-black tracking-tighter text-blue-500 italic uppercase">POLYPONG LIVE</h1>
+            <p id="stats-summary" class="text-[10px] text-slate-400 uppercase font-bold tracking-widest mt-1">Connexion en cours...</p>
         </div>
-        <button onclick="openModal('match')" class="bg-white text-slate-950 px-5 py-2 rounded-full font-black text-[10px] shadow-xl hover:scale-105 active:scale-95 transition-all uppercase tracking-tight">+ Duel</button>
+        <button onclick="openModal('match')" class="bg-blue-600 text-white px-5 py-2 rounded-full font-black text-[10px] shadow-lg active:scale-95 transition-all uppercase">+ MATCH</button>
     </header>
 
     <main class="p-4 max-w-2xl mx-auto">
         <div class="flex bg-slate-900/50 p-1.5 rounded-2xl mb-8 border border-white/5">
-            <button id="btn-matchs" onclick="switchTab('matchs')" class="flex-1 py-3.5 rounded-xl font-black text-[11px] bg-blue-600 text-white shadow-lg uppercase tracking-wider">Matchs</button>
-            <button id="btn-paris" onclick="switchTab('paris')" class="flex-1 py-3.5 rounded-xl font-black text-[11px] text-slate-500 uppercase tracking-wider">Pronostics</button>
+            <button id="btn-matchs" onclick="switchTab('matchs')" class="flex-1 py-3 rounded-xl font-black text-[11px] bg-blue-600 text-white uppercase transition-all">Matchs</button>
+            <button id="btn-paris" onclick="switchTab('paris')" class="flex-1 py-3 rounded-xl font-black text-[11px] text-slate-500 uppercase transition-all">Paris</button>
         </div>
 
         <div id="tab-matchs" class="space-y-6">
-            <div class="glass p-5 rounded-[2rem] shadow-2xl"><canvas id="mainChart" style="max-height: 140px;"></canvas></div>
+            <div class="glass p-5 rounded-[2rem]"><canvas id="mainChart" style="max-height: 140px;"></canvas></div>
             <div id="list-matchs" class="space-y-4"></div>
         </div>
 
         <div id="tab-paris" class="hidden space-y-8">
-            <div onclick="openModal('pari')" class="p-6 bg-blue-600/10 border-2 border-dashed border-blue-500/20 rounded-[2rem] text-center cursor-pointer hover:border-blue-500/50 transition-all">
-                <span class="text-blue-400 font-black uppercase text-xs tracking-widest">+ Lancer un prono</span>
-            </div>
+            <button onclick="openModal('pari')" class="w-full py-6 bg-blue-600/10 border-2 border-dashed border-blue-500/20 rounded-[2rem] text-blue-400 font-black uppercase text-xs tracking-widest hover:bg-blue-600/20 transition-all">+ PLACER UN PARI</button>
             <div id="list-paris" class="space-y-6"></div>
-            <div class="glass p-6 rounded-[2.5rem] relative overflow-hidden">
-                <h2 class="text-center font-black uppercase text-amber-500 mb-6 italic tracking-widest text-xs">Classement Général</h2>
+            <div class="glass p-6 rounded-[2rem]">
+                <h2 class="text-center font-black uppercase text-amber-500 mb-6 italic tracking-widest text-xs">Classement</h2>
                 <div id="leaderboard" class="space-y-3"></div>
             </div>
         </div>
     </main>
 
-    <div id="modal-match" class="fixed inset-0 bg-slate-950/90 hidden z-[100] p-6 flex items-center justify-center backdrop-blur-xl">
-        <div class="glass w-full max-w-xs rounded-[2.5rem] p-8 shadow-2xl">
-            <h2 class="font-black mb-6 uppercase text-blue-400 text-center text-sm">Nouveau Duel</h2>
-            <input id="match-label" type="text" placeholder="Nom du match" class="w-full bg-slate-800/50 border border-white/10 p-4 rounded-2xl mb-3 text-white outline-none">
+    <div id="modal-match" class="fixed inset-0 bg-black/90 hidden z-[100] p-6 flex items-center justify-center backdrop-blur-md">
+        <div class="glass w-full max-w-xs rounded-[2.5rem] p-8 shadow-2xl text-center">
+            <h2 class="font-black mb-6 uppercase text-blue-400 text-sm">Nouveau Duel</h2>
+            <input id="match-label" type="text" placeholder="Nom du match" class="w-full bg-slate-800 border border-white/10 p-4 rounded-2xl mb-3 text-white outline-none">
             <div class="grid grid-cols-2 gap-2 mb-8">
-                <input id="match-date" type="date" class="bg-slate-800/50 border border-white/10 p-4 rounded-2xl text-white text-xs outline-none">
-                <input id="match-time" type="time" class="bg-slate-800/50 border border-white/10 p-4 rounded-2xl text-white text-xs outline-none">
+                <input id="match-date" type="date" class="bg-slate-800 border border-white/10 p-3 rounded-2xl text-white text-[10px] outline-none">
+                <input id="match-time" type="time" class="bg-slate-800 border border-white/10 p-3 rounded-2xl text-white text-[10px] outline-none">
             </div>
-            <button onclick="saveMatch()" class="w-full py-4 bg-blue-600 rounded-2xl font-black uppercase text-xs shadow-lg">Lancer les paris</button>
-            <button onclick="closeModal('match')" class="w-full mt-2 py-2 text-slate-500 text-[10px] uppercase font-bold">Annuler</button>
+            <button onclick="saveMatch()" class="w-full py-4 bg-blue-600 rounded-2xl font-black uppercase text-xs shadow-lg mb-2">Créer</button>
+            <button onclick="closeModal('match')" class="text-slate-500 font-bold uppercase text-[10px]">Annuler</button>
         </div>
     </div>
 
-    <div id="modal-pari" class="fixed inset-0 bg-slate-950/90 hidden z-[100] p-6 flex items-center justify-center backdrop-blur-xl">
+    <div id="modal-pari" class="fixed inset-0 bg-black/90 hidden z-[100] p-6 flex items-center justify-center backdrop-blur-md">
         <div class="glass w-full max-w-xs rounded-[2.5rem] p-8 shadow-2xl">
             <h2 class="font-black mb-6 uppercase text-blue-400 text-center text-[10px] tracking-widest">TON CHOIX</h2>
-            <input id="pari-user" type="text" placeholder="Ton Prénom" class="w-full bg-slate-800/50 border border-white/10 p-4 rounded-2xl mb-4 text-white uppercase font-bold outline-none">
-            <select id="pari-match-id" class="w-full bg-slate-800/50 border border-white/10 p-4 rounded-2xl mb-6 text-white outline-none text-xs"></select>
+            <input id="pari-user" type="text" placeholder="Ton Prénom" class="w-full bg-slate-800 border border-white/10 p-4 rounded-2xl mb-4 text-white uppercase font-bold outline-none">
+            <select id="pari-match-id" class="w-full bg-slate-800 border border-white/10 p-4 rounded-2xl mb-6 text-white text-xs outline-none"></select>
             <div class="grid grid-cols-2 gap-3 mb-8">
                 <button id="pari-maxime" onclick="selectPari('Maxime')" class="p-5 border border-white/10 rounded-2xl font-black uppercase text-[10px]">Maxime</button>
                 <button id="pari-alan" onclick="selectPari('Alan')" class="p-5 border border-white/10 rounded-2xl font-black uppercase text-[10px]">Alan</button>
             </div>
-            <button onclick="savePari()" class="w-full py-5 bg-gradient-to-r from-blue-600 to-indigo-600 rounded-2xl font-black uppercase text-xs shadow-xl">Valider</button>
-            <button onclick="closeModal('pari')" class="w-full mt-4 py-2 text-slate-500 text-[10px] uppercase font-bold text-center">Retour</button>
+            <button onclick="savePari()" class="w-full py-5 bg-blue-600 rounded-2xl font-black uppercase text-xs">Valider</button>
+            <button onclick="closeModal('pari')" class="w-full mt-4 text-slate-500 text-[10px] uppercase font-bold text-center">Retour</button>
         </div>
     </div>
 
-    <div id="modal-score" class="fixed inset-0 bg-slate-950/90 hidden z-[100] p-6 flex items-center justify-center backdrop-blur-xl">
-        <div class="glass w-full max-w-xs rounded-[2.5rem] p-8 shadow-2xl">
-            <h2 class="font-black mb-6 uppercase text-green-400 text-center text-xs">Score Final</h2>
+    <div id="modal-score" class="fixed inset-0 bg-black/90 hidden z-[100] p-6 flex items-center justify-center backdrop-blur-md">
+        <div class="glass w-full max-w-xs rounded-[2.5rem] p-8">
+            <h2 class="font-black mb-6 uppercase text-green-400 text-center text-xs">Résultat</h2>
             <div class="grid grid-cols-2 gap-3 mb-6">
                 <button id="win-maxime" onclick="selectWinner('Maxime')" class="p-5 border border-white/10 rounded-2xl font-black uppercase text-[10px]">Maxime</button>
                 <button id="win-alan" onclick="selectWinner('Alan')" class="p-5 border border-white/10 rounded-2xl font-black uppercase text-[10px]">Alan</button>
             </div>
-            <input id="final-score" type="text" placeholder="Score final" class="w-full bg-slate-800/50 border border-white/10 p-5 rounded-2xl mb-8 text-center text-2xl font-black text-white outline-none">
+            <input id="final-score" type="text" placeholder="Score final" class="w-full bg-slate-800 border border-white/10 p-5 rounded-2xl mb-8 text-center text-2xl font-black text-white outline-none">
             <button onclick="validateMatch()" class="w-full py-5 bg-green-600 rounded-2xl font-black uppercase text-xs">Enregistrer</button>
         </div>
     </div>
@@ -118,88 +112,8 @@
         let tempP = ""; let tempW = ""; let activeId = null;
         let matchs = []; let paris = []; let myChart = null;
 
-        db.ref('matchs').on('value', s => { matchs = s.val() ? Object.entries(s.val()).map(([id, v]) => ({...v, id: id.toString()})) : []; render(); });
-        db.ref('paris').on('value', s => { paris = s.val() ? Object.entries(s.val()).map(([id, v]) => ({...v, id: id.toString()})) : []; render(); });
-
-        setInterval(render, 30000); // Rafraîchit l'affichage toutes les 30s pour le "LIVE"
-
-        function switchTab(t) {
-            document.getElementById('tab-matchs').classList.toggle('hidden', t !== 'matchs');
-            document.getElementById('tab-paris').classList.toggle('hidden', t !== 'paris');
-            document.getElementById('btn-matchs').className = t === 'matchs' ? "flex-1 py-3.5 rounded-xl font-black text-[11px] bg-blue-600 text-white shadow-lg uppercase tracking-wider" : "flex-1 py-3.5 rounded-xl font-black text-[11px] text-slate-500 uppercase tracking-wider";
-            document.getElementById('btn-paris').className = t === 'paris' ? "flex-1 py-3.5 rounded-xl font-black text-[11px] bg-blue-600 text-white shadow-lg uppercase tracking-wider" : "flex-1 py-3.5 rounded-xl font-black text-[11px] text-slate-500 uppercase tracking-wider";
-        }
-
-        function saveMatch() {
-            const l = document.getElementById('match-label').value;
-            const d = document.getElementById('match-date').value;
-            const t = document.getElementById('match-time').value;
-            if(!l || !d || !t) return alert("Remplis le nom, la date et l'heure !");
-            const startTime = new Date(d + 'T' + t).getTime();
-            const id = Date.now().toString();
-            db.ref('matchs/' + id).set({ id, label: l, date: d, time: t, startTime, winner: null, score: null });
-            closeModal('match');
-        }
-
-        function openModal(id, mId = null) { 
-            activeId = mId;
-            if(id === 'pari') {
-                const now = Date.now();
-                // ON FILTRE : Seulement les matchs qui n'ont pas encore commencé
-                const dispo = matchs.filter(m => !m.winner && m.startTime > now);
-                document.getElementById('pari-match-id').innerHTML = dispo.length ? dispo.map(m => `<option value="${m.id}">${m.label} (${m.time})</option>`).join('') : '<option value="null">Aucun match ouvert aux paris</option>';
-            }
-            document.getElementById('modal-'+id).classList.remove('hidden'); 
-        }
-
-        function savePari() {
-            const uRaw = document.getElementById('pari-user').value.trim();
-            const mId = document.getElementById('pari-match-id').value;
-            if(!uRaw || !tempP || !mId || mId === "null") return alert("Tout remplir !");
-            
-            const matchTarget = matchs.find(m => m.id === mId);
-            if(Date.now() >= matchTarget.startTime) return alert("🚨 Trop tard ! Le match a commencé, les paris sont clos.");
-
-            const dejaJoue = paris.find(p => p.user.trim().toLowerCase() === uRaw.toLowerCase() && p.matchId === mId);
-            if(dejaJoue) return alert("👮‍♂️ Un seul pari par match !");
-
-            db.ref('paris/').push({ user: uRaw, prono: tempP, matchId: mId });
-            closeModal('pari');
-        }
-
-        function validateMatch() {
-            const s = document.getElementById('final-score').value;
-            if(!tempW || !s) return alert("Gagnant et score ?");
-            confetti({ particleCount: 150, spread: 70, origin: { y: 0.6 }, colors: [tempW === 'Maxime' ? '#3b82f6' : '#ef4444', '#ffffff'] });
-            db.ref('matchs/' + activeId).update({ winner: tempW, score: s });
-            closeModal('score');
-        }
-
-        function selectPari(p) { tempP = p; document.getElementById('pari-maxime').className = p === 'Maxime' ? 'p-5 rounded-2xl font-black uppercase text-[10px] btn-active-blue' : 'p-5 border border-white/10 rounded-2xl font-black uppercase text-[10px]'; document.getElementById('pari-alan').className = p === 'Alan' ? 'p-5 rounded-2xl font-black uppercase text-[10px] btn-active-red' : 'p-5 border border-white/10 rounded-2xl font-black uppercase text-[10px]'; }
-        function selectWinner(p) { tempW = p; document.getElementById('win-maxime').className = p === 'Maxime' ? 'p-5 rounded-2xl font-black uppercase text-[10px] btn-active-blue' : 'p-5 border border-white/10 rounded-2xl font-black uppercase text-[10px]'; document.getElementById('win-alan').className = p === 'Alan' ? 'p-5 rounded-2xl font-black uppercase text-[10px] btn-active-red' : 'p-5 border border-white/10 rounded-2xl font-black uppercase text-[10px]'; }
-        function deleteMatch(id) { if(confirm("Supprimer ?")) db.ref('matchs/' + id).remove(); }
-        function deletePari(id) { if(confirm("Supprimer ?")) db.ref('paris/' + id).remove(); }
-        function closeModal(id) { document.getElementById('modal-'+id).classList.add('hidden'); }
-
-        function render() {
-            const now = Date.now();
-            const mW = matchs.filter(m => m.winner === 'Maxime').length;
-            const aW = matchs.filter(m => m.winner === 'Alan').length;
-            document.getElementById('stats-summary').innerText = `SCORE: M ${mW} - ${aW} A`;
-
-            document.getElementById('list-matchs').innerHTML = matchs.sort((a,b)=>b.id-a.id).map(m => {
-                const isLive = !m.winner && now >= m.startTime;
-                return `
-                <div class="glass p-5 rounded-[2rem] flex justify-between items-center fade-up relative ${isLive ? 'border-red-500/50 shadow-[0_0_20px_rgba(239,68,68,0.2)]' : ''}">
-                    <div class="flex items-center gap-4">
-                        <div class="relative">
-                            <img src="${m.winner ? PHOTOS[m.winner] : VS_ICON}" class="w-12 h-12 rounded-2xl object-cover border border-white/10">
-                            ${isLive ? '<div class="absolute -top-1 -right-1 live-dot border-2 border-slate-900"></div>' : ''}
-                        </div>
-                        <div>
-                            <p class="text-[9px] text-slate-500 font-bold uppercase tracking-widest">${m.date} à ${m.time}</p>
-                            <div class="flex items-center gap-2">
-                                <h3 class="font-black text-white text-xs uppercase italic">${m.label}</h3>
-                                <button onclick="deleteMatch('${m.id}')" class="text-white/10"><i class="fa-solid fa-trash text-[9px]"></i></button>
-                            </div>
-                            ${m.winner ? `<p class="text-[10px] font-black
+        db.ref('matchs').on('value', s => { 
+            const d = s.val();
+            matchs = d ? Object.entries(d).map(([id, v]) => ({...v, id: id.toString()})) : []; 
+            render(); 
+        });

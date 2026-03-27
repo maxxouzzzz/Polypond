@@ -15,18 +15,14 @@
         
         .glass { background: rgba(30, 41, 59, 0.7); backdrop-filter: blur(12px); border: 1px solid rgba(255, 255, 255, 0.05); }
         
-        /* Styles boutons actifs */
         .btn-active-blue { background: linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%) !important; color: white !important; border: none !important; box-shadow: 0 0 15px rgba(59, 130, 246, 0.5); }
         .btn-active-red { background: linear-gradient(135deg, #ef4444 0%, #b91c1c 100%) !important; color: white !important; border: none !important; box-shadow: 0 0 15px rgba(239, 68, 68, 0.5); }
         
-        /* Point clignotant En Direct */
         .live-dot { width: 8px; height: 8px; background: #ef4444; border-radius: 50%; animation: pulse 1.5s infinite; }
         @keyframes pulse { 0%, 100% { opacity: 1; transform: scale(1); } 50% { opacity: 0.3; transform: scale(0.8); } }
         
-        /* Inputs styles */
         input, select { background: #1e293b !important; color: white !important; border: 1px solid #334155 !important; }
         
-        /* Animation d'apparition */
         .fade-in { animation: fadeIn 0.5s ease-out forwards; opacity: 0; }
         @keyframes fadeIn { to { opacity: 1; } }
     </style>
@@ -45,7 +41,6 @@
         
         <div id="global-scoreboard" class="glass p-6 rounded-[2rem] mb-8 shadow-2xl relative overflow-hidden fade-in border-2 border-blue-500/10">
             <div class="flex items-center justify-between gap-4">
-                
                 <div class="flex items-center gap-3 text-left">
                     <img referrerpolicy="no-referrer" id="score-photo-maxime" src="" alt="Maxime" class="w-16 h-16 rounded-2xl object-cover border-4 border-blue-600/50 shadow-lg">
                     <div>
@@ -53,9 +48,7 @@
                         <span id="score-count-maxime" class="block text-5xl font-black italic tracking-tighter text-white">0</span>
                     </div>
                 </div>
-
                 <div class="text-3xl font-black text-slate-700 italic">VS</div>
-
                 <div class="flex items-center gap-3 text-right flex-row-reverse">
                     <img referrerpolicy="no-referrer" id="score-photo-alan" src="" alt="Alan" class="w-16 h-16 rounded-2xl object-cover border-4 border-red-600/50 shadow-lg">
                     <div>
@@ -63,7 +56,6 @@
                         <span id="score-count-alan" class="block text-5xl font-black italic tracking-tighter text-white">0</span>
                     </div>
                 </div>
-                
             </div>
             <div class="absolute -bottom-10 -left-10 w-40 h-40 bg-blue-600/10 rounded-full blur-3xl"></div>
             <div class="absolute -top-10 -right-10 w-40 h-40 bg-red-600/10 rounded-full blur-3xl"></div>
@@ -122,14 +114,13 @@
                 <button id="win-maxime" onclick="selectWinner('Maxime')" class="p-5 border border-white/10 rounded-2xl font-black text-[10px] uppercase transition-all">Maxime</button>
                 <button id="win-alan" onclick="selectWinner('Alan')" class="p-5 border border-white/10 rounded-2xl font-black text-[10px] uppercase transition-all">Alan</button>
             </div>
-            <input id="final-score" type="text" placeholder="Score final (ex: 11-8)" class="w-full p-5 rounded-2xl mb-8 text-center text-2xl font-black outline-none">
+            <input id="final-score" type="text" placeholder="Score (ex: 2-1 (11-8, 8-11, 11-5))" class="w-full p-5 rounded-2xl mb-8 text-center text-[11px] font-black outline-none">
             <button onclick="validateMatch()" class="w-full py-5 bg-green-600 rounded-2xl font-black text-xs uppercase text-white shadow-xl">Enregistrer</button>
             <button onclick="closeModal('score')" class="w-full mt-2 text-slate-500 text-[10px] uppercase text-center font-bold">Annuler</button>
         </div>
     </div>
 
     <script>
-        // CONFIG FIREBASE
         const firebaseConfig = {
             apiKey: "AIzaSyB3c2XjiG6WQvhPFwgReFOIlO61Z86OqHk",
             authDomain: "polypong-e47fd.firebaseapp.com",
@@ -142,7 +133,6 @@
         firebase.initializeApp(firebaseConfig);
         const db = firebase.database();
 
-        // DONNÉES
         const PHOTOS = { 
             'Maxime': 'https://i.postimg.cc/4dyK7Tz3/IMG-1306.png', 
             'Alan': 'https://i.postimg.cc/Jn0yDWbz/Resized-20241214-1341581.jpg' 
@@ -152,20 +142,64 @@
         let tempP = ""; let tempW = ""; let activeId = null;
         let matchs = []; let paris = [];
 
-        // CHARGEMENT
         db.ref('matchs').on('value', s => { 
-            const d = s.val();
-            matchs = d ? Object.entries(d).map(([id, v]) => ({...v, id})) : [];
-            render();
+            const d = s.val(); matchs = d ? Object.entries(d).map(([id, v]) => ({...v, id})) : []; render();
         });
-
         db.ref('paris').on('value', s => {
-            const d = s.val();
-            paris = d ? Object.entries(d).map(([id, v]) => ({...v, id})) : [];
-            render();
+            const d = s.val(); paris = d ? Object.entries(d).map(([id, v]) => ({...v, id})) : []; render();
         });
 
-        // LOGIQUE
+        // 🎾 LE MOTEUR TENNIS (Transforme le texte en grille)
+        function formatTennisScore(scoreStr) {
+            if (!scoreStr) return '';
+            
+            // Nettoyage et extraction
+            let cleanStr = scoreStr.replace(/\s+/g, '');
+            let mainMatch = cleanStr.match(/^(\d+)[-/](\d+)/);
+            
+            // Si le format n'est pas reconnu, on l'affiche normalement en gros
+            if (!mainMatch) {
+                return `<div class="text-2xl font-black italic tracking-tighter text-white">${scoreStr}</div>`;
+            }
+
+            let mainM = mainMatch[1];
+            let mainA = mainMatch[2];
+            
+            // On récupère ce qu'il y a entre parenthèses
+            let rest = cleanStr.substring(mainMatch[0].length).replace(/[()]/g, '').replace(/\//g, '-');
+            let setsHtml = '';
+            
+            if (rest) {
+                let setPairs = rest.split(',');
+                let rowM = ''; let rowA = '';
+                
+                setPairs.forEach(pair => {
+                    let parts = pair.split('-');
+                    if (parts.length >= 2) {
+                        let mVal = parseInt(parts[0]); let aVal = parseInt(parts[1]);
+                        let mClass = mVal > aVal ? 'text-white' : 'text-slate-600';
+                        let aClass = aVal > mVal ? 'text-white' : 'text-slate-600';
+                        rowM += `<span class="${mClass} w-4 text-center">${parts[0]}</span>`;
+                        rowA += `<span class="${aClass} w-4 text-center">${parts[1]}</span>`;
+                    }
+                });
+                
+                if (rowM && rowA) {
+                    setsHtml = `
+                    <div class="flex flex-col text-[11px] font-black mr-3 pr-3 border-r border-white/10 gap-0.5">
+                        <div class="flex gap-2 text-blue-400 items-center justify-end">${rowM}</div>
+                        <div class="flex gap-2 text-red-400 items-center justify-end">${rowA}</div>
+                    </div>`;
+                }
+            }
+
+            return `
+            <div class="flex items-center justify-end">
+                ${setsHtml}
+                <div class="text-3xl font-black italic tracking-tighter text-white">${mainM}-${mainA}</div>
+            </div>`;
+        }
+
         function switchTab(t) {
             document.getElementById('tab-matchs').classList.toggle('hidden', t !== 'matchs');
             document.getElementById('tab-paris').classList.toggle('hidden', t !== 'paris');
@@ -193,7 +227,7 @@
             if(target && Date.now() >= target.startTime) return alert("Trop tard ! Le match a commencé.");
 
             const deja = paris.find(p => p.user.toLowerCase() === u.toLowerCase() && p.matchId === mId);
-            if(deja) return alert("Tu as déjà parié sur ce match !");
+            if(deja) return alert("Déjà parié sur ce match !");
 
             db.ref('paris/').push({ user: u, prono: tempP, matchId: mId });
             closeModal('pari');
@@ -201,19 +235,17 @@
 
         function validateMatch() {
             const s = document.getElementById('final-score').value;
-            if(!tempW || !s) return alert("Choisis le vainqueur !");
+            if(!tempW || !s) return alert("Choisis le vainqueur et tape le score !");
             db.ref('matchs/' + activeId).update({ winner: tempW, score: s });
             closeModal('score');
         }
 
-        // MODALS GESTION
         function openModal(id, mId = null) { 
             activeId = mId;
             if(id === 'pari') {
                 const now = Date.now();
                 const dispo = matchs.filter(m => !m.winner && m.startTime > now);
                 document.getElementById('pari-match-id').innerHTML = dispo.length ? dispo.map(m => `<option value="${m.id}">${m.label} (${m.time})</option>`).join('') : '<option value="null">Aucun match ouvert</option>';
-                // Reset choix prono visuel
                 tempP = "";
                 document.getElementById('pari-maxime').className = 'p-5 border border-white/10 rounded-xl font-black text-[10px] uppercase';
                 document.getElementById('pari-alan').className = 'p-5 border border-white/10 rounded-xl font-black text-[10px] uppercase';
@@ -233,24 +265,29 @@
         function deleteMatch(id) { if(confirm("Supprimer définitivement ce match ?")) db.ref('matchs/' + id).remove(); }
         function deletePari(id) { if(confirm("Supprimer ce pari ?")) db.ref('paris/' + id).remove(); }
 
-        // RENDU PRINCIPAL
         function render() {
             const now = Date.now();
             const mW = matchs.filter(m => m.winner === 'Maxime').length;
             const aW = matchs.filter(m => m.winner === 'Alan').length;
 
-            // 1. Mise à jour du GROS SCOREBOARD
             document.getElementById('score-photo-maxime').src = PHOTOS['Maxime'];
             document.getElementById('score-photo-alan').src = PHOTOS['Alan'];
             document.getElementById('score-count-maxime').innerText = mW;
             document.getElementById('score-count-alan').innerText = aW;
 
-            // 2. Liste Matchs
             document.getElementById('list-matchs').innerHTML = matchs.sort((a,b)=>b.id-a.id).map(m => {
                 const isLive = !m.winner && now >= m.startTime;
-                // Formatage date simple (JJ/MM)
-                const dateObj = new Date(m.startTime);
-                const dateFormatee = dateObj.toLocaleDateString('fr-FR', {day: '2-digit', month: '2-digit'});
+                
+                // CORRECTION DU BUG DATE : Si pas d'heure valide, on affiche juste ce qui était tapé
+                let dateAffichee = m.date || '';
+                if (m.startTime) {
+                    const d = new Date(m.startTime);
+                    if (!isNaN(d)) dateAffichee = d.toLocaleDateString('fr-FR', {day: '2-digit', month: '2-digit'});
+                }
+                const timeAffiche = m.time ? ` à ${m.time}` : '';
+
+                // Appel du format Tennis
+                const scoreHTML = m.winner ? formatTennisScore(m.score) : `<button onclick="openModal('score', '${m.id}')" class="bg-blue-600 px-4 py-1.5 rounded-xl text-[8px] font-black uppercase text-white shadow-lg active:scale-95 transition-all">Clôturer</button>`;
 
                 return `
                 <div class="glass p-5 rounded-[2rem] flex justify-between items-center relative transition-all ${isLive ? 'border-red-500/40 shadow-[0_0_15px_rgba(239,68,68,0.1)]' : ''}">
@@ -260,7 +297,7 @@
                             ${isLive ? '<div class="absolute -top-1 -right-1 live-dot border-2 border-slate-950"></div>' : ''}
                         </div>
                         <div>
-                            <p class="text-[9px] text-slate-500 font-bold uppercase tracking-widest">${dateFormatee} à ${m.time}</p>
+                            <p class="text-[9px] text-slate-500 font-bold uppercase tracking-widest">${dateAffichee}${timeAffiche}</p>
                             <div class="flex items-center gap-2">
                                 <h3 class="font-black text-white text-xs uppercase italic tracking-tight">${m.label}</h3>
                                 <button onclick="deleteMatch('${m.id}')" class="text-white/10 hover:text-red-500 transition-colors"><i class="fa-solid fa-trash text-[9px]"></i></button>
@@ -270,13 +307,12 @@
                             </p>
                         </div>
                     </div>
-                    <div class="text-2xl font-black italic tracking-tighter text-white">
-                        ${m.winner ? m.score : `<button onclick="openModal('score', '${m.id}')" class="bg-blue-600 px-4 py-1.5 rounded-xl text-[8px] font-black uppercase text-white shadow-lg active:scale-95 transition-all">Clôturer</button>`}
+                    <div>
+                        ${scoreHTML}
                     </div>
                 </div>`;
             }).join('') || '<p class="text-center text-slate-600 py-10 uppercase font-bold text-[10px]">Aucun match programmé</p>';
 
-            // 3. Liste Paris
             const pts = {};
             document.getElementById('list-paris').innerHTML = [...matchs].sort((a,b)=>b.id-a.id).map(m => {
                 const mp = paris.filter(p => p.matchId === m.id);
@@ -303,7 +339,6 @@
                 </div>`;
             }).join('') || '<p class="text-center text-slate-600 py-10 uppercase font-bold text-[10px]">Aucun pari placé</p>';
 
-            // 4. Leaderboard
             document.getElementById('leaderboard').innerHTML = Object.entries(pts).sort((a,b)=>b[1]-a[1]).map(([n, p], i) => `
                 <div class="flex justify-between items-center p-4 rounded-2xl bg-white/5 border border-white/5 shadow-sm transition-all hover:bg-white/10">
                     <div class="flex items-center gap-3">
@@ -314,8 +349,7 @@
                 </div>`).join('') || '<p class="text-center text-slate-700 text-[10px] uppercase py-4">Le classement est vide</p>';
         }
 
-        // Auto-refresh pour le statut "EN DIRECT"
-        setInterval(render, 60000); // Toutes les minutes
+        setInterval(render, 60000);
     </script>
 </body>
 </html>

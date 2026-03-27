@@ -34,7 +34,7 @@
             <h1 class="text-lg font-black tracking-tighter text-blue-500 italic uppercase">POLYPONG LIVE</h1>
             <p id="stats-summary" class="text-[10px] text-slate-500 font-bold uppercase tracking-widest mt-1">Tour Series</p>
         </div>
-        <button onclick="openModal('match')" class="bg-blue-600 text-white px-5 py-2 rounded-full font-black text-[10px] uppercase shadow-lg hover:scale-105 active:scale-95 transition-all">+ DUEL</button>
+        <button onclick="if(checkAdmin()) openModal('match')" class="bg-blue-600 text-white px-5 py-2 rounded-full font-black text-[10px] uppercase shadow-lg hover:scale-105 active:scale-95 transition-all">+ DUEL</button>
     </header>
 
     <main class="p-4 max-w-2xl mx-auto">
@@ -114,13 +114,32 @@
                 <button id="win-maxime" onclick="selectWinner('Maxime')" class="p-5 border border-white/10 rounded-2xl font-black text-[10px] uppercase transition-all">Maxime</button>
                 <button id="win-alan" onclick="selectWinner('Alan')" class="p-5 border border-white/10 rounded-2xl font-black text-[10px] uppercase transition-all">Alan</button>
             </div>
-            <input id="final-score" type="text" placeholder="Score (ex: 2-1 (11-8, 8-11, 11-5))" class="w-full p-5 rounded-2xl mb-8 text-center text-[11px] font-black outline-none">
+            <input id="final-score" type="text" placeholder="Score final (ex: 2-1 (11-8, 8-11, 11-5))" class="w-full p-5 rounded-2xl mb-8 text-center text-sm font-black outline-none">
             <button onclick="validateMatch()" class="w-full py-5 bg-green-600 rounded-2xl font-black text-xs uppercase text-white shadow-xl">Enregistrer</button>
             <button onclick="closeModal('score')" class="w-full mt-2 text-slate-500 text-[10px] uppercase text-center font-bold">Annuler</button>
         </div>
     </div>
 
     <script>
+        // --- 🔒 ZONE SÉCURITÉ ADMIN ---
+        const SECRET_PIN = "1234"; // MODIFIE CE CODE COMME TU VEUX
+        let isAdmin = false;
+
+        function checkAdmin() {
+            if (isAdmin) return true; // Si tu as déjà tapé le code, ça passe direct.
+            
+            const code = prompt("🔒 Accès restreint. Code administrateur :");
+            if (code === SECRET_PIN) {
+                isAdmin = true;
+                return true;
+            } else {
+                alert("❌ Code incorrect ! Bien essayé petit malin.");
+                return false;
+            }
+        }
+        // -----------------------------
+
+        // CONFIG FIREBASE
         const firebaseConfig = {
             apiKey: "AIzaSyB3c2XjiG6WQvhPFwgReFOIlO61Z86OqHk",
             authDomain: "polypong-e47fd.firebaseapp.com",
@@ -133,6 +152,7 @@
         firebase.initializeApp(firebaseConfig);
         const db = firebase.database();
 
+        // DONNÉES
         const PHOTOS = { 
             'Maxime': 'https://i.postimg.cc/4dyK7Tz3/IMG-1306.png', 
             'Alan': 'https://i.postimg.cc/Jn0yDWbz/Resized-20241214-1341581.jpg' 
@@ -142,6 +162,7 @@
         let tempP = ""; let tempW = ""; let activeId = null;
         let matchs = []; let paris = [];
 
+        // CHARGEMENT
         db.ref('matchs').on('value', s => { 
             const d = s.val(); matchs = d ? Object.entries(d).map(([id, v]) => ({...v, id})) : []; render();
         });
@@ -149,23 +170,16 @@
             const d = s.val(); paris = d ? Object.entries(d).map(([id, v]) => ({...v, id})) : []; render();
         });
 
-        // 🎾 LE MOTEUR TENNIS (Transforme le texte en grille)
+        // LE MOTEUR TENNIS
         function formatTennisScore(scoreStr) {
             if (!scoreStr) return '';
             
-            // Nettoyage et extraction
             let cleanStr = scoreStr.replace(/\s+/g, '');
             let mainMatch = cleanStr.match(/^(\d+)[-/](\d+)/);
             
-            // Si le format n'est pas reconnu, on l'affiche normalement en gros
-            if (!mainMatch) {
-                return `<div class="text-2xl font-black italic tracking-tighter text-white">${scoreStr}</div>`;
-            }
+            if (!mainMatch) return `<div class="text-2xl font-black italic tracking-tighter text-white">${scoreStr}</div>`;
 
-            let mainM = mainMatch[1];
-            let mainA = mainMatch[2];
-            
-            // On récupère ce qu'il y a entre parenthèses
+            let mainM = mainMatch[1]; let mainA = mainMatch[2];
             let rest = cleanStr.substring(mainMatch[0].length).replace(/[()]/g, '').replace(/\//g, '-');
             let setsHtml = '';
             
@@ -200,6 +214,7 @@
             </div>`;
         }
 
+        // LOGIQUE APP
         function switchTab(t) {
             document.getElementById('tab-matchs').classList.toggle('hidden', t !== 'matchs');
             document.getElementById('tab-paris').classList.toggle('hidden', t !== 'paris');
@@ -262,9 +277,18 @@
         function closeModal(id) { document.getElementById('modal-'+id).classList.add('hidden'); }
         function selectPari(p) { tempP = p; document.getElementById('pari-maxime').className = p === 'Maxime' ? 'p-5 rounded-2xl font-black uppercase text-[10px] btn-active-blue' : 'p-5 border border-white/10 rounded-2xl font-black uppercase text-[10px]'; document.getElementById('pari-alan').className = p === 'Alan' ? 'p-5 rounded-2xl font-black uppercase text-[10px] btn-active-red' : 'p-5 border border-white/10 rounded-2xl font-black uppercase text-[10px]'; }
         function selectWinner(p) { tempW = p; document.getElementById('win-maxime').className = p === 'Maxime' ? 'p-5 rounded-2xl font-black uppercase text-[10px] btn-active-blue' : 'p-5 border border-white/10 rounded-2xl font-black uppercase text-[10px]'; document.getElementById('win-alan').className = p === 'Alan' ? 'p-5 rounded-2xl font-black uppercase text-[10px] btn-active-red' : 'p-5 border border-white/10 rounded-2xl font-black uppercase text-[10px]'; }
-        function deleteMatch(id) { if(confirm("Supprimer définitivement ce match ?")) db.ref('matchs/' + id).remove(); }
-        function deletePari(id) { if(confirm("Supprimer ce pari ?")) db.ref('paris/' + id).remove(); }
+        
+        // PROTECTION ADMIN SUR LA SUPPRESSION
+        function deleteMatch(id) { 
+            if(!checkAdmin()) return;
+            if(confirm("Supprimer définitivement ce match ?")) db.ref('matchs/' + id).remove(); 
+        }
+        function deletePari(id) { 
+            if(!checkAdmin()) return;
+            if(confirm("Supprimer ce pari ?")) db.ref('paris/' + id).remove(); 
+        }
 
+        // RENDU PRINCIPAL
         function render() {
             const now = Date.now();
             const mW = matchs.filter(m => m.winner === 'Maxime').length;
@@ -277,8 +301,6 @@
 
             document.getElementById('list-matchs').innerHTML = matchs.sort((a,b)=>b.id-a.id).map(m => {
                 const isLive = !m.winner && now >= m.startTime;
-                
-                // CORRECTION DU BUG DATE : Si pas d'heure valide, on affiche juste ce qui était tapé
                 let dateAffichee = m.date || '';
                 if (m.startTime) {
                     const d = new Date(m.startTime);
@@ -286,8 +308,8 @@
                 }
                 const timeAffiche = m.time ? ` à ${m.time}` : '';
 
-                // Appel du format Tennis
-                const scoreHTML = m.winner ? formatTennisScore(m.score) : `<button onclick="openModal('score', '${m.id}')" class="bg-blue-600 px-4 py-1.5 rounded-xl text-[8px] font-black uppercase text-white shadow-lg active:scale-95 transition-all">Clôturer</button>`;
+                // Le bouton Clôturer vérifie le code Admin avant de s'ouvrir !
+                const scoreHTML = m.winner ? formatTennisScore(m.score) : `<button onclick="if(checkAdmin()) openModal('score', '${m.id}')" class="bg-blue-600 px-4 py-1.5 rounded-xl text-[8px] font-black uppercase text-white shadow-lg active:scale-95 transition-all">Clôturer</button>`;
 
                 return `
                 <div class="glass p-5 rounded-[2rem] flex justify-between items-center relative transition-all ${isLive ? 'border-red-500/40 shadow-[0_0_15px_rgba(239,68,68,0.1)]' : ''}">

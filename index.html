@@ -12,12 +12,18 @@
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;700;900&display=swap');
         body { font-family: 'Inter', sans-serif; background: #020617; color: white; overflow-x: hidden; }
+        
         .glass { background: rgba(30, 41, 59, 0.7); backdrop-filter: blur(12px); border: 1px solid rgba(255, 255, 255, 0.05); }
+        
         .btn-active-blue { background: linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%) !important; color: white !important; border: none !important; box-shadow: 0 0 15px rgba(59, 130, 246, 0.5); }
         .btn-active-red { background: linear-gradient(135deg, #ef4444 0%, #b91c1c 100%) !important; color: white !important; border: none !important; box-shadow: 0 0 15px rgba(239, 68, 68, 0.5); }
+        .btn-active-purple { background: linear-gradient(135deg, #a855f7 0%, #7e22ce 100%) !important; color: white !important; border: none !important; box-shadow: 0 0 15px rgba(168, 85, 247, 0.5); }
+        
         .live-dot { width: 8px; height: 8px; background: #ef4444; border-radius: 50%; animation: pulse 1.5s infinite; }
         @keyframes pulse { 0%, 100% { opacity: 1; transform: scale(1); } 50% { opacity: 0.3; transform: scale(0.8); } }
+        
         input, select { background: #1e293b !important; color: white !important; border: 1px solid #334155 !important; }
+        
         .fade-in { animation: fadeIn 0.5s ease-out forwards; opacity: 0; }
         @keyframes fadeIn { to { opacity: 1; } }
     </style>
@@ -33,6 +39,7 @@
     </header>
 
     <main class="p-4 max-w-2xl mx-auto">
+        
         <div id="global-scoreboard" class="glass p-6 rounded-[2rem] mb-8 shadow-2xl relative overflow-hidden fade-in border-2 border-blue-500/10">
             <div class="flex items-center justify-between gap-4">
                 <div class="flex items-center gap-3 text-left">
@@ -91,11 +98,25 @@
         <div class="glass w-full max-w-xs rounded-[2.5rem] p-8 shadow-2xl overflow-y-auto max-h-[90vh]">
             <h2 class="font-black mb-6 text-blue-400 text-center text-xs uppercase tracking-widest">Ton Pronostic</h2>
             <input id="pari-user" type="text" placeholder="Ton Prénom" class="w-full p-4 rounded-2xl mb-4 uppercase font-bold outline-none">
-            <select id="pari-match-id" class="w-full p-4 rounded-2xl mb-6 text-xs outline-none"></select>
-            <div class="grid grid-cols-2 gap-3 mb-8">
+            <select id="pari-match-id" class="w-full p-4 rounded-2xl mb-4 text-xs outline-none"></select>
+            
+            <div class="flex gap-2 mb-4 bg-slate-800/50 p-1.5 rounded-xl">
+                <button id="type-vainqueur" onclick="switchBetType('vainqueur')" class="flex-1 py-2 rounded-lg bg-blue-600 text-white text-[10px] font-black uppercase transition-all">Vainqueur</button>
+                <button id="type-sets" onclick="switchBetType('sets')" class="flex-1 py-2 rounded-lg text-slate-500 text-[10px] font-black uppercase transition-all">Nb de Sets</button>
+            </div>
+
+            <div id="choix-vainqueur" class="grid grid-cols-2 gap-3 mb-6">
                 <button id="pari-maxime" onclick="selectPari('Maxime')" class="p-5 border border-white/10 rounded-2xl font-black text-[10px] uppercase transition-all">Maxime</button>
                 <button id="pari-alan" onclick="selectPari('Alan')" class="p-5 border border-white/10 rounded-2xl font-black text-[10px] uppercase transition-all">Alan</button>
             </div>
+
+            <div id="choix-sets" class="hidden grid grid-cols-4 gap-2 mb-6">
+                <button id="pari-2sets" onclick="selectPari('2 SETS')" class="p-4 border border-white/10 rounded-xl font-black text-[10px] uppercase transition-all">2</button>
+                <button id="pari-3sets" onclick="selectPari('3 SETS')" class="p-4 border border-white/10 rounded-xl font-black text-[10px] uppercase transition-all">3</button>
+                <button id="pari-4sets" onclick="selectPari('4 SETS')" class="p-4 border border-white/10 rounded-xl font-black text-[10px] uppercase transition-all">4</button>
+                <button id="pari-5sets" onclick="selectPari('5 SETS')" class="p-4 border border-white/10 rounded-xl font-black text-[10px] uppercase transition-all">5</button>
+            </div>
+
             <button onclick="savePari()" class="w-full py-5 bg-blue-600 rounded-2xl font-black text-xs uppercase text-white shadow-xl">Valider</button>
             <button onclick="closeModal('pari')" class="w-full mt-4 text-slate-500 text-[10px] uppercase text-center font-bold">Retour</button>
         </div>
@@ -116,8 +137,7 @@
 
     <script>
         // --- 🔒 ZONE SÉCURITÉ CRYPTÉE ---
-        // Le mot de passe (2026) est transformé. Impossible à lire dans le code source.
-        const SECRET_HASH = 1537282; 
+        const SECRET_HASH = 1537282; // Code = 2026
         let isAdmin = false;
 
         function hashCode(str) {
@@ -131,17 +151,10 @@
 
         function checkAdmin() {
             if (isAdmin) return true;
-            
             const code = prompt("🔒 Accès Administrateur requis. Code :");
             if (!code) return false;
-
-            if (hashCode(code) === SECRET_HASH) {
-                isAdmin = true;
-                return true;
-            } else {
-                alert("❌ Bien tenté, mais non. Retourne jouer Gabin.");
-                return false;
-            }
+            if (hashCode(code) === SECRET_HASH) { isAdmin = true; return true; } 
+            else { alert("❌ Mot de passe incorrect."); return false; }
         }
         // ---------------------------------
 
@@ -195,11 +208,41 @@
             return `<div class="flex items-center justify-end">${setsHtml}<div class="text-3xl font-black italic tracking-tighter text-white">${mainM}-${mainA}</div></div>`;
         }
 
+        // NAVIGATION ONGLETS (Matchs/Paris)
         function switchTab(t) {
             document.getElementById('tab-matchs').classList.toggle('hidden', t !== 'matchs');
             document.getElementById('tab-paris').classList.toggle('hidden', t !== 'paris');
             document.getElementById('btn-matchs').className = t === 'matchs' ? "flex-1 py-3.5 rounded-xl font-black text-[11px] bg-blue-600 text-white uppercase" : "flex-1 py-3.5 rounded-xl font-black text-[11px] text-slate-500 uppercase";
             document.getElementById('btn-paris').className = t === 'paris' ? "flex-1 py-3.5 rounded-xl font-black text-[11px] bg-blue-600 text-white uppercase" : "flex-1 py-3.5 rounded-xl font-black text-[11px] text-slate-500 uppercase";
+        }
+
+        // NAVIGATION TYPE DE PARI (Vainqueur/Sets)
+        function switchBetType(t) {
+            tempP = ""; // Reset du choix
+            resetBetStyles();
+            document.getElementById('choix-vainqueur').classList.toggle('hidden', t !== 'vainqueur');
+            document.getElementById('choix-sets').classList.toggle('hidden', t !== 'sets');
+            document.getElementById('type-vainqueur').className = t === 'vainqueur' ? "flex-1 py-2 rounded-lg bg-blue-600 text-white text-[10px] font-black uppercase transition-all" : "flex-1 py-2 rounded-lg text-slate-500 text-[10px] font-black uppercase transition-all";
+            document.getElementById('type-sets').className = t === 'sets' ? "flex-1 py-2 rounded-lg bg-purple-600 text-white text-[10px] font-black uppercase transition-all" : "flex-1 py-2 rounded-lg text-slate-500 text-[10px] font-black uppercase transition-all";
+        }
+
+        function resetBetStyles() {
+            document.getElementById('pari-maxime').className = 'p-5 border border-white/10 rounded-2xl font-black text-[10px] uppercase transition-all';
+            document.getElementById('pari-alan').className = 'p-5 border border-white/10 rounded-2xl font-black text-[10px] uppercase transition-all';
+            ['2', '3', '4', '5'].forEach(n => {
+                document.getElementById('pari-'+n+'sets').className = 'p-4 border border-white/10 rounded-xl font-black text-[10px] uppercase transition-all';
+            });
+        }
+
+        function selectPari(p) { 
+            tempP = p; 
+            resetBetStyles();
+            if (p === 'Maxime') document.getElementById('pari-maxime').className = 'p-5 rounded-2xl font-black uppercase text-[10px] btn-active-blue'; 
+            else if (p === 'Alan') document.getElementById('pari-alan').className = 'p-5 rounded-2xl font-black uppercase text-[10px] btn-active-red'; 
+            else if (p.includes('SETS')) {
+                const n = p.charAt(0);
+                document.getElementById('pari-'+n+'sets').className = 'p-4 rounded-xl font-black uppercase text-[10px] btn-active-purple';
+            }
         }
 
         function saveMatch() {
@@ -211,10 +254,13 @@
 
         function savePari() {
             const u = document.getElementById('pari-user').value.trim(); const mId = document.getElementById('pari-match-id').value;
-            if(!u || !tempP || !mId || mId === "null") return alert("Formulaire incomplet !");
+            if(!u || !tempP || !mId || mId === "null") return alert("Formulaire incomplet ! Choisis un match et ton pari.");
             const target = matchs.find(m => m.id === mId);
             if(target && Date.now() >= target.startTime) return alert("Trop tard ! Le match a commencé.");
-            if(paris.find(p => p.user.toLowerCase() === u.toLowerCase() && p.matchId === mId)) return alert("Déjà parié !");
+            
+            // On vérifie s'il a déjà parié sur CE match (un seul pari total autorisé par match)
+            if(paris.find(p => p.user.toLowerCase() === u.toLowerCase() && p.matchId === mId)) return alert("Tu as déjà placé un pronostic sur ce match ! Un seul pari par personne.");
+            
             db.ref('paris/').push({ user: u, prono: tempP, matchId: mId });
             closeModal('pari');
         }
@@ -232,20 +278,18 @@
                 const now = Date.now();
                 const dispo = matchs.filter(m => !m.winner && m.startTime > now);
                 document.getElementById('pari-match-id').innerHTML = dispo.length ? dispo.map(m => `<option value="${m.id}">${m.label} (${m.time})</option>`).join('') : '<option value="null">Aucun match ouvert</option>';
-                tempP = ""; document.getElementById('pari-maxime').className = 'p-5 border border-white/10 rounded-xl font-black text-[10px] uppercase'; document.getElementById('pari-alan').className = 'p-5 border border-white/10 rounded-xl font-black text-[10px] uppercase';
+                switchBetType('vainqueur'); // Ouvre sur Vainqueur par défaut
             }
             if(id === 'score') {
-                tempW = ""; document.getElementById('win-maxime').className = 'p-5 border border-white/10 rounded-xl font-black text-[10px] uppercase'; document.getElementById('win-alan').className = 'p-5 border border-white/10 rounded-xl font-black text-[10px] uppercase'; document.getElementById('final-score').value = "";
+                tempW = ""; document.getElementById('win-maxime').className = 'p-5 border border-white/10 rounded-2xl font-black text-[10px] uppercase transition-all'; document.getElementById('win-alan').className = 'p-5 border border-white/10 rounded-2xl font-black text-[10px] uppercase transition-all'; document.getElementById('final-score').value = "";
             }
             document.getElementById('modal-'+id).classList.remove('hidden'); 
         }
 
         function closeModal(id) { document.getElementById('modal-'+id).classList.add('hidden'); }
-        function selectPari(p) { tempP = p; document.getElementById('pari-maxime').className = p === 'Maxime' ? 'p-5 rounded-2xl font-black uppercase text-[10px] btn-active-blue' : 'p-5 border border-white/10 rounded-2xl font-black uppercase text-[10px]'; document.getElementById('pari-alan').className = p === 'Alan' ? 'p-5 rounded-2xl font-black uppercase text-[10px] btn-active-red' : 'p-5 border border-white/10 rounded-2xl font-black uppercase text-[10px]'; }
-        function selectWinner(p) { tempW = p; document.getElementById('win-maxime').className = p === 'Maxime' ? 'p-5 rounded-2xl font-black uppercase text-[10px] btn-active-blue' : 'p-5 border border-white/10 rounded-2xl font-black uppercase text-[10px]'; document.getElementById('win-alan').className = p === 'Alan' ? 'p-5 rounded-2xl font-black uppercase text-[10px] btn-active-red' : 'p-5 border border-white/10 rounded-2xl font-black uppercase text-[10px]'; }
-        
-        function deleteMatch(id) { if(!checkAdmin()) return; if(confirm("Supprimer ?")) db.ref('matchs/' + id).remove(); }
-        function deletePari(id) { if(!checkAdmin()) return; if(confirm("Supprimer ?")) db.ref('paris/' + id).remove(); }
+        function selectWinner(p) { tempW = p; document.getElementById('win-maxime').className = p === 'Maxime' ? 'p-5 rounded-2xl font-black uppercase text-[10px] btn-active-blue' : 'p-5 border border-white/10 rounded-2xl font-black uppercase text-[10px] transition-all'; document.getElementById('win-alan').className = p === 'Alan' ? 'p-5 rounded-2xl font-black uppercase text-[10px] btn-active-red' : 'p-5 border border-white/10 rounded-2xl font-black uppercase text-[10px] transition-all'; }
+        function deleteMatch(id) { if(!checkAdmin()) return; if(confirm("Supprimer définitivement ce match ?")) db.ref('matchs/' + id).remove(); }
+        function deletePari(id) { if(!checkAdmin()) return; if(confirm("Supprimer ce pari ?")) db.ref('paris/' + id).remove(); }
 
         function render() {
             const now = Date.now();
@@ -257,6 +301,7 @@
             document.getElementById('score-count-maxime').innerText = mW;
             document.getElementById('score-count-alan').innerText = aW;
 
+            // RENDER MATCHS
             document.getElementById('list-matchs').innerHTML = matchs.sort((a,b)=>b.id-a.id).map(m => {
                 const isLive = !m.winner && now >= m.startTime;
                 let dateAffichee = m.date || '';
@@ -281,6 +326,7 @@
                 </div>`;
             }).join('') || '<p class="text-center text-slate-600 py-10 uppercase font-bold text-[10px]">Aucun match programmé</p>';
 
+            // RENDER PARIS
             const pts = {};
             document.getElementById('list-paris').innerHTML = [...matchs].sort((a,b)=>b.id-a.id).map(m => {
                 const mp = paris.filter(p => p.matchId === m.id);
@@ -291,9 +337,32 @@
                     <div class="space-y-2">
                         ${mp.reverse().map(p => {
                             let res = "EN ATTENTE"; let cl = "text-slate-600";
-                            if(m.winner) { if(m.winner === p.prono) { res = "GAGNÉ ✅"; cl = "text-green-400"; pts[p.user] = (pts[p.user] || 0) + 1; } else { res = "PERDU ❌"; cl = "text-red-400"; pts[p.user] = (pts[p.user] || 0); } }
+                            
+                            // CALCUL DU RÉSULTAT DU PARI
+                            if(m.winner) { 
+                                if(p.prono === 'Maxime' || p.prono === 'Alan') {
+                                    if(m.winner === p.prono) { res = "GAGNÉ ✅"; cl = "text-green-400"; pts[p.user] = (pts[p.user] || 0) + 1; } 
+                                    else { res = "PERDU ❌"; cl = "text-red-400"; pts[p.user] = (pts[p.user] || 0); } 
+                                } else if (p.prono.includes('SETS')) {
+                                    let betSets = parseInt(p.prono);
+                                    let matchScoreClean = m.score ? m.score.replace(/\s+/g, '').match(/^(\d+)[-/](\d+)/) : null;
+                                    if(matchScoreClean) {
+                                        let totalSetsPlayed = parseInt(matchScoreClean[1]) + parseInt(matchScoreClean[2]);
+                                        if (totalSetsPlayed === betSets) { res = "GAGNÉ ✅"; cl = "text-green-400"; pts[p.user] = (pts[p.user] || 0) + 1; }
+                                        else { res = "PERDU ❌"; cl = "text-red-400"; pts[p.user] = (pts[p.user] || 0); }
+                                    } else {
+                                        res = "ANNULÉ"; cl = "text-slate-500"; // Si le score est mal tapé
+                                    }
+                                }
+                            }
+
+                            // COULEUR DU TEXTE DU PRONO
+                            let pronoColor = 'text-purple-400';
+                            if(p.prono === 'Maxime') pronoColor = 'text-blue-400';
+                            if(p.prono === 'Alan') pronoColor = 'text-red-400';
+
                             return `<div class="glass p-4 rounded-2xl flex justify-between items-center text-[10px] font-black uppercase">
-                                <div class="flex items-center gap-2"><button onclick="deletePari('${p.id}')" class="text-white/10 hover:text-red-500"><i class="fa-solid fa-xmark"></i></button><span class="text-slate-200">${p.user} : <span class="${p.prono==='Maxime'?'text-blue-400':'text-red-400'}">${p.prono}</span></span></div>
+                                <div class="flex items-center gap-2"><button onclick="deletePari('${p.id}')" class="text-white/10 hover:text-red-500"><i class="fa-solid fa-xmark"></i></button><span class="text-slate-200">${p.user} : <span class="${pronoColor}">${p.prono}</span></span></div>
                                 <span class="${cl} tracking-tight">${res}</span>
                             </div>`;
                         }).join('')}

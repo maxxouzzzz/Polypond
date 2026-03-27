@@ -12,17 +12,12 @@
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;700;900&display=swap');
         body { font-family: 'Inter', sans-serif; background: #020617; color: white; overflow-x: hidden; }
-        
         .glass { background: rgba(30, 41, 59, 0.7); backdrop-filter: blur(12px); border: 1px solid rgba(255, 255, 255, 0.05); }
-        
         .btn-active-blue { background: linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%) !important; color: white !important; border: none !important; box-shadow: 0 0 15px rgba(59, 130, 246, 0.5); }
         .btn-active-red { background: linear-gradient(135deg, #ef4444 0%, #b91c1c 100%) !important; color: white !important; border: none !important; box-shadow: 0 0 15px rgba(239, 68, 68, 0.5); }
-        
         .live-dot { width: 8px; height: 8px; background: #ef4444; border-radius: 50%; animation: pulse 1.5s infinite; }
         @keyframes pulse { 0%, 100% { opacity: 1; transform: scale(1); } 50% { opacity: 0.3; transform: scale(0.8); } }
-        
         input, select { background: #1e293b !important; color: white !important; border: 1px solid #334155 !important; }
-        
         .fade-in { animation: fadeIn 0.5s ease-out forwards; opacity: 0; }
         @keyframes fadeIn { to { opacity: 1; } }
     </style>
@@ -38,7 +33,6 @@
     </header>
 
     <main class="p-4 max-w-2xl mx-auto">
-        
         <div id="global-scoreboard" class="glass p-6 rounded-[2rem] mb-8 shadow-2xl relative overflow-hidden fade-in border-2 border-blue-500/10">
             <div class="flex items-center justify-between gap-4">
                 <div class="flex items-center gap-3 text-left">
@@ -83,7 +77,7 @@
     <div id="modal-match" class="fixed inset-0 bg-black/90 hidden z-[100] p-6 flex items-center justify-center backdrop-blur-md">
         <div class="glass w-full max-w-xs rounded-[2.5rem] p-8 text-center shadow-2xl">
             <h2 class="font-black mb-6 text-blue-400 uppercase text-sm">Nouveau Duel</h2>
-            <input id="match-label" type="text" placeholder="Titre (ex: Match du midi)" class="w-full p-4 rounded-2xl mb-3 outline-none">
+            <input id="match-label" type="text" placeholder="Titre (ex: Match du soir)" class="w-full p-4 rounded-2xl mb-3 outline-none">
             <div class="grid grid-cols-2 gap-2 mb-8">
                 <input id="match-date" type="date" class="p-3 rounded-2xl text-[10px] outline-none">
                 <input id="match-time" type="time" class="p-3 rounded-2xl text-[10px] outline-none">
@@ -114,30 +108,42 @@
                 <button id="win-maxime" onclick="selectWinner('Maxime')" class="p-5 border border-white/10 rounded-2xl font-black text-[10px] uppercase transition-all">Maxime</button>
                 <button id="win-alan" onclick="selectWinner('Alan')" class="p-5 border border-white/10 rounded-2xl font-black text-[10px] uppercase transition-all">Alan</button>
             </div>
-            <input id="final-score" type="text" placeholder="Score final (ex: 2-1 (11-8, 8-11, 11-5))" class="w-full p-5 rounded-2xl mb-8 text-center text-sm font-black outline-none">
+            <input id="final-score" type="text" placeholder="Score final (ex: 2-1 (11-8, 11-5))" class="w-full p-5 rounded-2xl mb-8 text-center text-sm font-black outline-none">
             <button onclick="validateMatch()" class="w-full py-5 bg-green-600 rounded-2xl font-black text-xs uppercase text-white shadow-xl">Enregistrer</button>
             <button onclick="closeModal('score')" class="w-full mt-2 text-slate-500 text-[10px] uppercase text-center font-bold">Annuler</button>
         </div>
     </div>
 
     <script>
-        // --- 🔒 ZONE SÉCURITÉ ADMIN ---
-        const SECRET_PIN = "0103082507"; // MODIFIE CE CODE COMME TU VEUX
+        // --- 🔒 ZONE SÉCURITÉ CRYPTÉE ---
+        // Le mot de passe (2026) est transformé. Impossible à lire dans le code source.
+        const SECRET_HASH = 1537228; 
         let isAdmin = false;
 
+        function hashCode(str) {
+            let hash = 0;
+            for (let i = 0; i < str.length; i++) {
+                hash = ((hash << 5) - hash) + str.charCodeAt(i);
+                hash |= 0; 
+            }
+            return hash;
+        }
+
         function checkAdmin() {
-            if (isAdmin) return true; // Si tu as déjà tapé le code, ça passe direct.
+            if (isAdmin) return true;
             
-            const code = prompt("🔒 Accès restreint. Code administrateur :");
-            if (code === SECRET_PIN) {
+            const code = prompt("🔒 Accès Administrateur requis. Code :");
+            if (!code) return false;
+
+            if (hashCode(code) === SECRET_HASH) {
                 isAdmin = true;
                 return true;
             } else {
-                alert("❌ Code incorrect ! Bien essayé petit malin.");
+                alert("❌ Bien tenté, mais non. Retourne jouer Gabin.");
                 return false;
             }
         }
-        // -----------------------------
+        // ---------------------------------
 
         // CONFIG FIREBASE
         const firebaseConfig = {
@@ -152,31 +158,19 @@
         firebase.initializeApp(firebaseConfig);
         const db = firebase.database();
 
-        // DONNÉES
-        const PHOTOS = { 
-            'Maxime': 'https://i.postimg.cc/4dyK7Tz3/IMG-1306.png', 
-            'Alan': 'https://i.postimg.cc/Jn0yDWbz/Resized-20241214-1341581.jpg' 
-        };
+        const PHOTOS = { 'Maxime': 'https://i.postimg.cc/4dyK7Tz3/IMG-1306.png', 'Alan': 'https://i.postimg.cc/Jn0yDWbz/Resized-20241214-1341581.jpg' };
         const VS_ICON = 'https://cdn-icons-png.flaticon.com/512/771/771241.png';
 
         let tempP = ""; let tempW = ""; let activeId = null;
         let matchs = []; let paris = [];
 
-        // CHARGEMENT
-        db.ref('matchs').on('value', s => { 
-            const d = s.val(); matchs = d ? Object.entries(d).map(([id, v]) => ({...v, id})) : []; render();
-        });
-        db.ref('paris').on('value', s => {
-            const d = s.val(); paris = d ? Object.entries(d).map(([id, v]) => ({...v, id})) : []; render();
-        });
+        db.ref('matchs').on('value', s => { const d = s.val(); matchs = d ? Object.entries(d).map(([id, v]) => ({...v, id})) : []; render(); });
+        db.ref('paris').on('value', s => { const d = s.val(); paris = d ? Object.entries(d).map(([id, v]) => ({...v, id})) : []; render(); });
 
-        // LE MOTEUR TENNIS
         function formatTennisScore(scoreStr) {
             if (!scoreStr) return '';
-            
             let cleanStr = scoreStr.replace(/\s+/g, '');
             let mainMatch = cleanStr.match(/^(\d+)[-/](\d+)/);
-            
             if (!mainMatch) return `<div class="text-2xl font-black italic tracking-tighter text-white">${scoreStr}</div>`;
 
             let mainM = mainMatch[1]; let mainA = mainMatch[2];
@@ -186,7 +180,6 @@
             if (rest) {
                 let setPairs = rest.split(',');
                 let rowM = ''; let rowA = '';
-                
                 setPairs.forEach(pair => {
                     let parts = pair.split('-');
                     if (parts.length >= 2) {
@@ -197,24 +190,11 @@
                         rowA += `<span class="${aClass} w-4 text-center">${parts[1]}</span>`;
                     }
                 });
-                
-                if (rowM && rowA) {
-                    setsHtml = `
-                    <div class="flex flex-col text-[11px] font-black mr-3 pr-3 border-r border-white/10 gap-0.5">
-                        <div class="flex gap-2 text-blue-400 items-center justify-end">${rowM}</div>
-                        <div class="flex gap-2 text-red-400 items-center justify-end">${rowA}</div>
-                    </div>`;
-                }
+                if (rowM && rowA) setsHtml = `<div class="flex flex-col text-[11px] font-black mr-3 pr-3 border-r border-white/10 gap-0.5"><div class="flex gap-2 text-blue-400 items-center justify-end">${rowM}</div><div class="flex gap-2 text-red-400 items-center justify-end">${rowA}</div></div>`;
             }
-
-            return `
-            <div class="flex items-center justify-end">
-                ${setsHtml}
-                <div class="text-3xl font-black italic tracking-tighter text-white">${mainM}-${mainA}</div>
-            </div>`;
+            return `<div class="flex items-center justify-end">${setsHtml}<div class="text-3xl font-black italic tracking-tighter text-white">${mainM}-${mainA}</div></div>`;
         }
 
-        // LOGIQUE APP
         function switchTab(t) {
             document.getElementById('tab-matchs').classList.toggle('hidden', t !== 'matchs');
             document.getElementById('tab-paris').classList.toggle('hidden', t !== 'paris');
@@ -223,34 +203,25 @@
         }
 
         function saveMatch() {
-            const l = document.getElementById('match-label').value;
-            const d = document.getElementById('match-date').value;
-            const t = document.getElementById('match-time').value;
+            const l = document.getElementById('match-label').value; const d = document.getElementById('match-date').value; const t = document.getElementById('match-time').value;
             if(!l || !d || !t) return alert("Remplis tout !");
-            const startTime = new Date(d + 'T' + t).getTime();
-            const id = Date.now().toString();
-            db.ref('matchs/' + id).set({ id, label: l, date: d, time: t, startTime, winner: null, score: null });
+            db.ref('matchs/' + Date.now().toString()).set({ id: Date.now().toString(), label: l, date: d, time: t, startTime: new Date(d + 'T' + t).getTime(), winner: null, score: null });
             closeModal('match');
         }
 
         function savePari() {
-            const u = document.getElementById('pari-user').value.trim();
-            const mId = document.getElementById('pari-match-id').value;
+            const u = document.getElementById('pari-user').value.trim(); const mId = document.getElementById('pari-match-id').value;
             if(!u || !tempP || !mId || mId === "null") return alert("Formulaire incomplet !");
-            
             const target = matchs.find(m => m.id === mId);
             if(target && Date.now() >= target.startTime) return alert("Trop tard ! Le match a commencé.");
-
-            const deja = paris.find(p => p.user.toLowerCase() === u.toLowerCase() && p.matchId === mId);
-            if(deja) return alert("Déjà parié sur ce match !");
-
+            if(paris.find(p => p.user.toLowerCase() === u.toLowerCase() && p.matchId === mId)) return alert("Déjà parié !");
             db.ref('paris/').push({ user: u, prono: tempP, matchId: mId });
             closeModal('pari');
         }
 
         function validateMatch() {
             const s = document.getElementById('final-score').value;
-            if(!tempW || !s) return alert("Choisis le vainqueur et tape le score !");
+            if(!tempW || !s) return alert("Choisis le vainqueur !");
             db.ref('matchs/' + activeId).update({ winner: tempW, score: s });
             closeModal('score');
         }
@@ -261,15 +232,10 @@
                 const now = Date.now();
                 const dispo = matchs.filter(m => !m.winner && m.startTime > now);
                 document.getElementById('pari-match-id').innerHTML = dispo.length ? dispo.map(m => `<option value="${m.id}">${m.label} (${m.time})</option>`).join('') : '<option value="null">Aucun match ouvert</option>';
-                tempP = "";
-                document.getElementById('pari-maxime').className = 'p-5 border border-white/10 rounded-xl font-black text-[10px] uppercase';
-                document.getElementById('pari-alan').className = 'p-5 border border-white/10 rounded-xl font-black text-[10px] uppercase';
+                tempP = ""; document.getElementById('pari-maxime').className = 'p-5 border border-white/10 rounded-xl font-black text-[10px] uppercase'; document.getElementById('pari-alan').className = 'p-5 border border-white/10 rounded-xl font-black text-[10px] uppercase';
             }
             if(id === 'score') {
-                tempW = "";
-                document.getElementById('win-maxime').className = 'p-5 border border-white/10 rounded-xl font-black text-[10px] uppercase';
-                document.getElementById('win-alan').className = 'p-5 border border-white/10 rounded-xl font-black text-[10px] uppercase';
-                document.getElementById('final-score').value = "";
+                tempW = ""; document.getElementById('win-maxime').className = 'p-5 border border-white/10 rounded-xl font-black text-[10px] uppercase'; document.getElementById('win-alan').className = 'p-5 border border-white/10 rounded-xl font-black text-[10px] uppercase'; document.getElementById('final-score').value = "";
             }
             document.getElementById('modal-'+id).classList.remove('hidden'); 
         }
@@ -278,17 +244,9 @@
         function selectPari(p) { tempP = p; document.getElementById('pari-maxime').className = p === 'Maxime' ? 'p-5 rounded-2xl font-black uppercase text-[10px] btn-active-blue' : 'p-5 border border-white/10 rounded-2xl font-black uppercase text-[10px]'; document.getElementById('pari-alan').className = p === 'Alan' ? 'p-5 rounded-2xl font-black uppercase text-[10px] btn-active-red' : 'p-5 border border-white/10 rounded-2xl font-black uppercase text-[10px]'; }
         function selectWinner(p) { tempW = p; document.getElementById('win-maxime').className = p === 'Maxime' ? 'p-5 rounded-2xl font-black uppercase text-[10px] btn-active-blue' : 'p-5 border border-white/10 rounded-2xl font-black uppercase text-[10px]'; document.getElementById('win-alan').className = p === 'Alan' ? 'p-5 rounded-2xl font-black uppercase text-[10px] btn-active-red' : 'p-5 border border-white/10 rounded-2xl font-black uppercase text-[10px]'; }
         
-        // PROTECTION ADMIN SUR LA SUPPRESSION
-        function deleteMatch(id) { 
-            if(!checkAdmin()) return;
-            if(confirm("Supprimer définitivement ce match ?")) db.ref('matchs/' + id).remove(); 
-        }
-        function deletePari(id) { 
-            if(!checkAdmin()) return;
-            if(confirm("Supprimer ce pari ?")) db.ref('paris/' + id).remove(); 
-        }
+        function deleteMatch(id) { if(!checkAdmin()) return; if(confirm("Supprimer ?")) db.ref('matchs/' + id).remove(); }
+        function deletePari(id) { if(!checkAdmin()) return; if(confirm("Supprimer ?")) db.ref('paris/' + id).remove(); }
 
-        // RENDU PRINCIPAL
         function render() {
             const now = Date.now();
             const mW = matchs.filter(m => m.winner === 'Maxime').length;
@@ -302,36 +260,24 @@
             document.getElementById('list-matchs').innerHTML = matchs.sort((a,b)=>b.id-a.id).map(m => {
                 const isLive = !m.winner && now >= m.startTime;
                 let dateAffichee = m.date || '';
-                if (m.startTime) {
-                    const d = new Date(m.startTime);
-                    if (!isNaN(d)) dateAffichee = d.toLocaleDateString('fr-FR', {day: '2-digit', month: '2-digit'});
-                }
-                const timeAffiche = m.time ? ` à ${m.time}` : '';
-
-                // Le bouton Clôturer vérifie le code Admin avant de s'ouvrir !
+                if (m.startTime) { const d = new Date(m.startTime); if (!isNaN(d)) dateAffichee = d.toLocaleDateString('fr-FR', {day: '2-digit', month: '2-digit'}); }
+                
                 const scoreHTML = m.winner ? formatTennisScore(m.score) : `<button onclick="if(checkAdmin()) openModal('score', '${m.id}')" class="bg-blue-600 px-4 py-1.5 rounded-xl text-[8px] font-black uppercase text-white shadow-lg active:scale-95 transition-all">Clôturer</button>`;
 
                 return `
                 <div class="glass p-5 rounded-[2rem] flex justify-between items-center relative transition-all ${isLive ? 'border-red-500/40 shadow-[0_0_15px_rgba(239,68,68,0.1)]' : ''}">
                     <div class="flex items-center gap-4">
-                        <div class="relative">
-                            <img src="${m.winner ? PHOTOS[m.winner] : VS_ICON}" class="w-12 h-12 rounded-2xl object-cover border border-white/10 shadow-lg">
-                            ${isLive ? '<div class="absolute -top-1 -right-1 live-dot border-2 border-slate-950"></div>' : ''}
-                        </div>
+                        <div class="relative"><img src="${m.winner ? PHOTOS[m.winner] : VS_ICON}" class="w-12 h-12 rounded-2xl object-cover border border-white/10 shadow-lg">${isLive ? '<div class="absolute -top-1 -right-1 live-dot border-2 border-slate-950"></div>' : ''}</div>
                         <div>
-                            <p class="text-[9px] text-slate-500 font-bold uppercase tracking-widest">${dateAffichee}${timeAffiche}</p>
+                            <p class="text-[9px] text-slate-500 font-bold uppercase tracking-widest">${dateAffichee} ${m.time ? 'à '+m.time : ''}</p>
                             <div class="flex items-center gap-2">
                                 <h3 class="font-black text-white text-xs uppercase italic tracking-tight">${m.label}</h3>
                                 <button onclick="deleteMatch('${m.id}')" class="text-white/10 hover:text-red-500 transition-colors"><i class="fa-solid fa-trash text-[9px]"></i></button>
                             </div>
-                            <p class="text-[9px] font-black uppercase mt-1 ${m.winner==='Maxime'?'text-blue-400':m.winner==='Alan'?'text-red-400':'text-slate-500'}">
-                                ${m.winner ? m.winner + ' GAGNE' : (isLive ? 'EN DIRECT' : 'À VENIR')}
-                            </p>
+                            <p class="text-[9px] font-black uppercase mt-1 ${m.winner==='Maxime'?'text-blue-400':m.winner==='Alan'?'text-red-400':'text-slate-500'}">${m.winner ? m.winner + ' GAGNE' : (isLive ? 'EN DIRECT' : 'À VENIR')}</p>
                         </div>
                     </div>
-                    <div>
-                        ${scoreHTML}
-                    </div>
+                    <div>${scoreHTML}</div>
                 </div>`;
             }).join('') || '<p class="text-center text-slate-600 py-10 uppercase font-bold text-[10px]">Aucun match programmé</p>';
 
@@ -345,15 +291,9 @@
                     <div class="space-y-2">
                         ${mp.reverse().map(p => {
                             let res = "EN ATTENTE"; let cl = "text-slate-600";
-                            if(m.winner) {
-                                if(m.winner === p.prono) { res = "GAGNÉ ✅"; cl = "text-green-400"; pts[p.user] = (pts[p.user] || 0) + 1; }
-                                else { res = "PERDU ❌"; cl = "text-red-400"; pts[p.user] = (pts[p.user] || 0); }
-                            }
+                            if(m.winner) { if(m.winner === p.prono) { res = "GAGNÉ ✅"; cl = "text-green-400"; pts[p.user] = (pts[p.user] || 0) + 1; } else { res = "PERDU ❌"; cl = "text-red-400"; pts[p.user] = (pts[p.user] || 0); } }
                             return `<div class="glass p-4 rounded-2xl flex justify-between items-center text-[10px] font-black uppercase">
-                                <div class="flex items-center gap-2">
-                                    <button onclick="deletePari('${p.id}')" class="text-white/10 hover:text-red-500"><i class="fa-solid fa-xmark"></i></button>
-                                    <span class="text-slate-200">${p.user} : <span class="${p.prono==='Maxime'?'text-blue-400':'text-red-400'}">${p.prono}</span></span>
-                                </div>
+                                <div class="flex items-center gap-2"><button onclick="deletePari('${p.id}')" class="text-white/10 hover:text-red-500"><i class="fa-solid fa-xmark"></i></button><span class="text-slate-200">${p.user} : <span class="${p.prono==='Maxime'?'text-blue-400':'text-red-400'}">${p.prono}</span></span></div>
                                 <span class="${cl} tracking-tight">${res}</span>
                             </div>`;
                         }).join('')}
@@ -363,10 +303,7 @@
 
             document.getElementById('leaderboard').innerHTML = Object.entries(pts).sort((a,b)=>b[1]-a[1]).map(([n, p], i) => `
                 <div class="flex justify-between items-center p-4 rounded-2xl bg-white/5 border border-white/5 shadow-sm transition-all hover:bg-white/10">
-                    <div class="flex items-center gap-3">
-                        <span class="w-6 h-6 flex items-center justify-center rounded-full text-[10px] font-black ${i===0?'bg-amber-500 text-slate-950':'bg-slate-800 text-slate-400'}">${i+1}</span>
-                        <span class="font-black text-xs uppercase text-slate-100">${n}</span>
-                    </div>
+                    <div class="flex items-center gap-3"><span class="w-6 h-6 flex items-center justify-center rounded-full text-[10px] font-black ${i===0?'bg-amber-500 text-slate-950':'bg-slate-800 text-slate-400'}">${i+1}</span><span class="font-black text-xs uppercase text-slate-100">${n}</span></div>
                     <span class="font-black text-blue-400 italic">${p} <span class="text-[8px] text-slate-500 not-italic ml-0.5">PTS</span></span>
                 </div>`).join('') || '<p class="text-center text-slate-700 text-[10px] uppercase py-4">Le classement est vide</p>';
         }

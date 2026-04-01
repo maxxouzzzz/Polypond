@@ -148,20 +148,19 @@
     </div>
 
     <script>
-        // --- 🔒 ZONE SÉCURITÉ ADMIN ---
-        const SECRET_HASH = 1537282; // Code = 2026
-        let isAdmin = false;
-
-        function hashCode(str) {
-            let hash = 0; for (let i = 0; i < str.length; i++) { hash = ((hash << 5) - hash) + str.charCodeAt(i); hash |= 0; } return hash;
-        }
-
+        // --- 🔒 NOUVELLE ZONE SÉCURITÉ ADMIN OBFUSQUÉE ---
+        // Gabin, va t'entraîner au ping-pong au lieu d'inspecter le code !
+        const _0x1a2b = [0x6d, 0x61, 0x78, 0x69, 0x6d, 0x65, 0x62, 0x6f, 0x73, 0x73]; 
         function checkAdmin() {
-            if (isAdmin) return true;
-            const code = prompt("🔒 Code Administrateur :");
-            if (hashCode(code) === SECRET_HASH) { isAdmin = true; return true; } 
-            else { alert("❌ Code incorrect."); return false; }
+            if (sessionStorage.getItem('_xAuth') === '1') return true;
+            let _0x3c = prompt("🔒 Accès restreint. Entrez la clé :");
+            if (!_0x3c) return false;
+            let _0x4d = _0x3c.split('').map(x=>x.charCodeAt(0));
+            let _0x5e = _0x4d.length === _0x1a2b.length && _0x4d.every((v,i) => v === _0x1a2b[i]);
+            if (_0x5e) { sessionStorage.setItem('_xAuth', '1'); return true; }
+            alert("❌ Tentative de piratage échouée."); return false;
         }
+        // ---------------------------------
 
         // CONFIG FIREBASE
         const firebaseConfig = {
@@ -187,46 +186,34 @@
         db.ref('matchs').on('value', s => { const d = s.val(); matchs = d ? Object.entries(d).map(([id, v]) => ({...v, id})) : []; render(); });
         db.ref('paris').on('value', s => { const d = s.val(); paris = d ? Object.entries(d).map(([id, v]) => ({...v, id})) : []; render(); });
 
-        // 🎾 NOUVEAU DÉCODEUR DE SCORE TENNIS (Ultra Robuste)
         function formatTennisScore(scoreStr) {
             if (!scoreStr) return '';
-            
-            // 1. Cherche le score principal (ex: 2-1, 2/1, 2 1)
-            let mainMatch = scoreStr.match(/^\s*(\d+)\s*[-/]\s*(\d+)/);
+            let cleanStr = scoreStr.replace(/\s+/g, '');
+            let mainMatch = cleanStr.match(/^\s*(\d+)\s*[-/]\s*(\d+)/);
             if (!mainMatch) return `<div class="text-2xl font-black italic tracking-tighter text-white">${scoreStr}</div>`;
 
-            let mainM = mainMatch[1]; 
-            let mainA = mainMatch[2];
+            let mainM = mainMatch[1]; let mainA = mainMatch[2];
             let setsHtml = '';
-            
-            // 2. Cherche ce qu'il y a entre parenthèses
             let parensMatch = scoreStr.match(/\((.*?)\)/);
             
             if (parensMatch) {
                 let insideParens = parensMatch[1];
-                
-                // 3. Trouve toutes les paires de chiffres (ex: 11-8, 11/5, 8:11) en ignorant les virgules/espaces
                 let setPairs = insideParens.match(/\d+\s*[-/:]\s*\d+/g);
-                
                 if (setPairs) {
                     let rowM = ''; let rowA = '';
                     setPairs.forEach(pair => {
                         let parts = pair.split(/[-/:]/);
                         if (parts.length >= 2) {
-                            let mVal = parseInt(parts[0].trim()); 
-                            let aVal = parseInt(parts[1].trim());
+                            let mVal = parseInt(parts[0].trim()); let aVal = parseInt(parts[1].trim());
                             let mClass = mVal > aVal ? 'text-white' : 'text-slate-600';
                             let aClass = aVal > mVal ? 'text-white' : 'text-slate-600';
                             rowM += `<span class="${mClass} w-4 text-center">${mVal}</span>`;
                             rowA += `<span class="${aClass} w-4 text-center">${aVal}</span>`;
                         }
                     });
-                    if (rowM && rowA) {
-                        setsHtml = `<div class="flex flex-col text-[11px] font-black mr-3 pr-3 border-r border-white/10 gap-0.5"><div class="flex gap-2 text-blue-400 items-center justify-end">${rowM}</div><div class="flex gap-2 text-red-400 items-center justify-end">${rowA}</div></div>`;
-                    }
+                    if (rowM && rowA) setsHtml = `<div class="flex flex-col text-[11px] font-black mr-3 pr-3 border-r border-white/10 gap-0.5"><div class="flex gap-2 text-blue-400 items-center justify-end">${rowM}</div><div class="flex gap-2 text-red-400 items-center justify-end">${rowA}</div></div>`;
                 }
             }
-
             return `<div class="flex items-center justify-end">${setsHtml}<div class="text-3xl font-black italic tracking-tighter text-white">${mainM}-${mainA}</div></div>`;
         }
 
